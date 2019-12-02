@@ -3,12 +3,11 @@
 (defn fuel-needed [mass] (- (int (Math/floor (/ mass 3))) 2))
 
 (defn tsiolkovsky [mass]
-  (loop [module mass
-         fuel 0
+  (loop [fuel 0
          delta (fuel-needed mass)]
     (if (<= delta 0)
       fuel
-      (recur mass (+ fuel delta) (fuel-needed delta)))))
+      (recur (+ fuel delta) (fuel-needed delta)))))
 
 (defn- fuel-sum [compute-fuel module-masses]
   (reduce + (map compute-fuel (map #(Integer/parseInt %) module-masses))))
