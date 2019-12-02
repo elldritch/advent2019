@@ -13,7 +13,7 @@
   (reduce + (map compute-fuel (map #(Integer/parseInt %) module-masses))))
 
 (defn solve! [input-file]
-  (with-open [rdr (clojure.java.io/reader input-file)]
-    (let [masses (line-seq rdr)]
+  (with-open [reader (clojure.java.io/reader input-file)]
+    (let [masses (line-seq reader)]
       (println "Fuel needed for module masses alone:" (fuel-sum fuel-needed masses))
       (println "Total fuel needed:" (fuel-sum tsiolkovsky masses)))))
