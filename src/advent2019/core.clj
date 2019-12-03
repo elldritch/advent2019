@@ -1,6 +1,7 @@
 (ns advent2019.core
   (:require [advent2019.day-01 :as day1]
             [advent2019.day-02 :as day2]
+            [advent2019.day-03 :as day3]
             [clojure.tools.cli :refer [parse-opts]])
   (:gen-class))
 
@@ -42,6 +43,7 @@
       (case puzzle
         1 (day1/solve! file)
         2 (day2/solve! file)
+        3 (day3/solve! file)
         (do
           (println "Error: invalid puzzle number")
           (System/exit 1))))))
