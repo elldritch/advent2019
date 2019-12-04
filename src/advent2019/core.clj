@@ -2,6 +2,7 @@
   (:require [advent2019.day-01 :as day1]
             [advent2019.day-02 :as day2]
             [advent2019.day-03 :as day3]
+            [advent2019.day-04 :as day4]
             [clojure.tools.cli :refer [parse-opts]])
   (:gen-class))
 
@@ -44,6 +45,7 @@
         1 (day1/solve! file)
         2 (day2/solve! file)
         3 (day3/solve! file)
+        4 (day4/solve! file)
         (do
           (println "Error: invalid puzzle number")
           (System/exit 1))))))
