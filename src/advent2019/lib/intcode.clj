@@ -14,38 +14,37 @@
     (throw (ex-info "unknown parameter mode"
                     {:instruction instruction-digits :parameter-number parameter-number}))))
 
+(defn parameter [instruction state pc n]
+  (let [parameter-value (nth state (+ pc n))]
+    (case (parameter-mode (digits instruction) n)
+      :position (nth state parameter-value)
+      :immediate parameter-value)))
+
 (defn next-instruction [state pc]
   (let [instruction (nth state pc)
-        d (digits instruction)]
+        parameter' (partial parameter instruction state pc)
+        slot (fn [n] (nth state (+ pc n)))]
     (case (mod instruction 100)
       1 {:op :add
-         :a (nth state (+ pc 1)) :a-mode (parameter-mode d 1)
-         :b (nth state (+ pc 2)) :b-mode (parameter-mode d 2)
-         :store-in (nth state (+ pc 3))}
+         :a (parameter' 1)
+         :b (parameter' 2)
+         :store-in (slot 3)}
       2 {:op :multiply
-         :a (nth state (+ pc 1)) :a-mode (parameter-mode d 1)
-         :b (nth state (+ pc 2)) :b-mode (parameter-mode d 2)
-         :store-in (nth state (+ pc 3))}
+         :a (parameter' 1)
+         :b (parameter' 2)
+         :store-in (slot 3)}
       3 {:op :input
-         :store-in (nth state (+ pc 1))}
+         :store-in (slot 3)}
       4 {:op :output
-         :output (nth state (+ pc 1))
-         :output-mode (parameter-mode d 1)}
+         :output (parameter' 1)}
       99 {:op :halt}
       (throw (ex-info "unknown instruction"
                       {:instruction instruction
                        :pc pc
                        :state state})))))
 
-(defn get-parameter [state parameter mode]
-  (case mode
-    :position (nth state parameter)
-    :immediate parameter))
-
-(defn arithmetic [state {:keys [a a-mode b b-mode store-in]} f]
-  (let [a-value (get-parameter state a a-mode)
-        b-value (get-parameter state b b-mode)]
-    (assoc state store-in (f a-value b-value))))
+(defn arithmetic [state {:keys [a b store-in]} f]
+  (assoc state store-in (f a b)))
 
 (defn run-program [program input]
   (loop [state program
@@ -68,8 +67,6 @@
                       (+ pc 2))
         :output (recur state
                        input
-                       (conj outputs (get-parameter state
-                                       (instruction :output)
-                                       (instruction :output-mode)))
+                       (conj outputs (instruction :output))
                        (+ pc 2))
         :halt {:state state :input input :outputs outputs :pc pc}))))
