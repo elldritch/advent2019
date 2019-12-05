@@ -1,8 +1,16 @@
 (ns advent2019.day-05
   (:require [advent2019.lib.intcode :refer [load-program! run-program]]))
 
+(defn tests-ok? [outputs]
+  (= 0 (reduce + 0 (take (dec (count outputs)) outputs))))
+
 (defn solve! [file]
-  (let [outputs (:outputs (run-program (load-program! file) 1))]
-    (println "Outputs:" outputs)
-    (println "All tests zero?:" (= 0 (reduce + 0 (take (dec (count outputs)) outputs))))
-    (println "Diagnostic code:" (last outputs))))
+  (let [program (load-program! file)
+        ac-outputs (:outputs (run-program program 1))
+        radiator-outputs (:outputs (run-program program 5))]
+    (println "Air conditioner outputs:" ac-outputs)
+    (println "All tests zero?:" (tests-ok? ac-outputs))
+    (println "Diagnostic code:" (last ac-outputs))
+    (println "Thermal radiator outputs:" radiator-outputs)
+    (println "All tests zero?:" (tests-ok? radiator-outputs))
+    (println "Diagnostic code:" (last radiator-outputs))))

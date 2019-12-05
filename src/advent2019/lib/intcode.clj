@@ -37,36 +37,63 @@
          :store-in (slot 1)}
       4 {:op :output
          :output (parameter' 1)}
+      5 {:op :jump-if-true
+         :test (parameter' 1)
+         :jump-to (parameter' 2)}
+      6 {:op :jump-if-false
+         :test (parameter' 1)
+         :jump-to (parameter' 2)}
+      7 {:op :less-than
+         :a (parameter' 1)
+         :b (parameter' 2)
+         :store-in (slot 3)}
+      8 {:op :equals
+         :a (parameter' 1)
+         :b (parameter' 2)
+         :store-in (slot 3)}
       99 {:op :halt}
       (throw (ex-info "unknown instruction"
                       {:instruction instruction
                        :pc pc
                        :state state})))))
 
-(defn arithmetic [state {:keys [a b store-in]} f]
-  (assoc state store-in (f a b)))
-
 (defn run-program [program input]
   (loop [state program
          input input
          outputs []
          pc 0]
-    (let [instruction (next-instruction state pc)]
-      (case (:op instruction)
-        :add (recur (arithmetic state instruction +)
+    (let [i (next-instruction state pc)]
+      (case (:op i)
+        :add (recur (assoc state (i :store-in) (+ (i :a) (i :b)))
                     input
                     outputs
                     (+ pc 4))
-        :multiply (recur (arithmetic state instruction *)
+        :multiply (recur (assoc state (i :store-in) (* (i :a) (i :b)))
                          input
                          outputs
                          (+ pc 4))
-        :input (recur (assoc state (instruction :store-in) input)
+        :input (recur (assoc state (i :store-in) input)
                       input
                       outputs
                       (+ pc 2))
         :output (recur state
                        input
-                       (conj outputs (instruction :output))
+                       (conj outputs (i :output))
                        (+ pc 2))
+        :jump-if-true (recur state
+                             input
+                             outputs
+                             (if (not= 0 (i :test)) (i :jump-to) (+ pc 3)))
+        :jump-if-false (recur state
+                              input
+                              outputs
+                              (if (= 0 (i :test)) (i :jump-to) (+ pc 3)))
+        :less-than (recur (assoc state (i :store-in) (if (< (i :a) (i :b)) 1 0))
+                          input
+                          outputs
+                          (+ pc 4))
+        :equals (recur (assoc state (i :store-in) (if (= (i :a) (i :b)) 1 0))
+                       input
+                       outputs
+                       (+ pc 4))
         :halt {:state state :input input :outputs outputs :pc pc}))))
