@@ -34,7 +34,7 @@
          :b (parameter' 2)
          :store-in (slot 3)}
       3 {:op :input
-         :store-in (slot 3)}
+         :store-in (slot 1)}
       4 {:op :output
          :output (parameter' 1)}
       99 {:op :halt}
