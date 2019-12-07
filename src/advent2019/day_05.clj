@@ -6,8 +6,8 @@
 
 (defn solve! [file]
   (let [program (load-program! file)
-        ac-outputs (:outputs (run-program program 1))
-        radiator-outputs (:outputs (run-program program 5))]
+        ac-outputs (:outputs (run-program program [1]))
+        radiator-outputs (:outputs (run-program program [5]))]
     (println "Air conditioner outputs:" ac-outputs)
     (println "All tests zero?:" (tests-ok? ac-outputs))
     (println "Diagnostic code:" (last ac-outputs))

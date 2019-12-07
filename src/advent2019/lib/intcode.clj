@@ -57,9 +57,9 @@
                        :pc pc
                        :state state})))))
 
-(defn run-program [program input]
+(defn run-program [program inputs]
   (loop [state program
-         input input
+         input inputs
          outputs []
          pc 0]
     (let [i (next-instruction state pc)]
@@ -72,8 +72,8 @@
                          input
                          outputs
                          (+ pc 4))
-        :input (recur (assoc state (i :store-in) input)
-                      input
+        :input (recur (assoc state (i :store-in) (peek input))
+                      (pop input)
                       outputs
                       (+ pc 2))
         :output (recur state

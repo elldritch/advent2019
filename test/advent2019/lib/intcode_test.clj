@@ -3,7 +3,7 @@
             [advent2019.lib.intcode :refer [run-program]]))
 
 (defn expect [property input program expected]
-  (is (= (property (run-program program input))) expected))
+  (is (= (property (run-program program [input]))) expected))
 
 (def expect-state (partial expect :state nil))
 
