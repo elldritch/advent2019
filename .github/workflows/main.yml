@@ -23,7 +23,7 @@ jobs:
         run: |
           # We use `jq` workarounds when the input file has multiple lines,
           # because GitHub Actions Secrets swallow newlines.
-          echo -n $PUZZLE_INPUT_DAY_1 | jq -r | head -c -1 > /tmp/puzzle-input-day-1
+          echo -n $PUZZLE_INPUT_DAY_1 | jq -r . | head -c -1 > /tmp/puzzle-input-day-1
           lein run -- --input-file /tmp/puzzle-input-day-1 --puzzle 1
         env:
           PUZZLE_INPUT_DAY_1: ${{ secrets.PUZZLE_INPUT_DAY_1}}
@@ -35,7 +35,7 @@ jobs:
           PUZZLE_INPUT_DAY_2: ${{ secrets.PUZZLE_INPUT_DAY_2}}
       - name: Solve day 3 challenge
         run: |
-          echo -n $PUZZLE_INPUT_DAY_3 | jq -r | head -c -1 > /tmp/puzzle-input-day-3
+          echo -n $PUZZLE_INPUT_DAY_3 | jq -r . | head -c -1 > /tmp/puzzle-input-day-3
           lein run -- --input-file /tmp/puzzle-input-day-3 --puzzle 3
         env:
           PUZZLE_INPUT_DAY_3: ${{ secrets.PUZZLE_INPUT_DAY_3}}
@@ -53,7 +53,7 @@ jobs:
           PUZZLE_INPUT_DAY_5: ${{ secrets.PUZZLE_INPUT_DAY_5}}
       - name: Solve day 6 challenge
         run: |
-          echo -n $PUZZLE_INPUT_DAY_6 | jq -r | head -c -1 > /tmp/puzzle-input-day-6
+          echo -n $PUZZLE_INPUT_DAY_6 | jq -r . | head -c -1 > /tmp/puzzle-input-day-6
           lein run -- --input-file /tmp/puzzle-input-day-6 --puzzle 6
         env:
           PUZZLE_INPUT_DAY_6: ${{ secrets.PUZZLE_INPUT_DAY_6}}
