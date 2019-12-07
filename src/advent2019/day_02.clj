@@ -4,7 +4,7 @@
 (defn interpret-program [noun verb program]
   (let [program' (assoc program 1 noun)
         program'' (assoc program' 2 verb)]
-    (first (run-program program'' nil))))
+    (first (:state (run-program program'' nil)))))
 
 (defn int-pairs
   ([] (int-pairs 0))
