@@ -2,49 +2,89 @@ name: Build, run, and test
 on: [push, pull_request]
 
 jobs:
-  main:
+  build-and-test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
-    - name: Install dependencies
-      run: lein deps
+      - uses: actions/checkout@v1
+      - name: Install dependencies
+        run: lein deps
+      - name: Run tests
+        run: lein test
 
-    - name: Run tests
-      run: lein test
+  solve-day-1:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Install dependencies
+        run: lein deps
+      - name: Solve day 1 challenge
+        run: |
+          echo $PUZZLE_INPUT_DAY_1 > /tmp/puzzle-input-day-1
+          lein run -- --input-file /tmp/puzzle-input-day-1 --puzzle 1
+        env:
+          PUZZLE_INPUT_DAY_1: ${{ secrets.PUZZLE_INPUT_DAY_1}}
 
-    - name: Solve day 1 challenge
-      run: |
-        echo $PUZZLE_INPUT_DAY_1 > /tmp/puzzle-input-day-1
-        lein run -- --input-file /tmp/puzzle-input-day-1 --puzzle 1
-      env:
-        PUZZLE_INPUT_DAY_1: ${{ secrets.PUZZLE_INPUT_DAY_1}}
-    - name: Solve day 2 challenge
-      run: |
-        echo $PUZZLE_INPUT_DAY_2 > /tmp/puzzle-input-day-2
-        lein run -- --input-file /tmp/puzzle-input-day-2 --puzzle 2
-      env:
-        PUZZLE_INPUT_DAY_2: ${{ secrets.PUZZLE_INPUT_DAY_2}}
-    - name: Solve day 3 challenge
-      run: |
-        echo $PUZZLE_INPUT_DAY_3 > /tmp/puzzle-input-day-3
-        lein run -- --input-file /tmp/puzzle-input-day-3 --puzzle 3
-      env:
-        PUZZLE_INPUT_DAY_3: ${{ secrets.PUZZLE_INPUT_DAY_3}}
-    - name: Solve day 4 challenge
-      run: |
-        echo $PUZZLE_INPUT_DAY_4 > /tmp/puzzle-input-day-4
-        lein run -- --input-file /tmp/puzzle-input-day-4 --puzzle 4
-      env:
-        PUZZLE_INPUT_DAY_4: ${{ secrets.PUZZLE_INPUT_DAY_4}}
-    - name: Solve day 5 challenge
-      run: |
-        echo $PUZZLE_INPUT_DAY_5 > /tmp/puzzle-input-day-5
-        lein run -- --input-file /tmp/puzzle-input-day-5 --puzzle 5
-      env:
-        PUZZLE_INPUT_DAY_5: ${{ secrets.PUZZLE_INPUT_DAY_5}}
-    - name: Solve day 6 challenge
-      run: |
-        echo $PUZZLE_INPUT_DAY_6 > /tmp/puzzle-input-day-6
-        lein run -- --input-file /tmp/puzzle-input-day-6 --puzzle 6
-      env:
-        PUZZLE_INPUT_DAY_6: ${{ secrets.PUZZLE_INPUT_DAY_6}}
+  solve-day-2:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Install dependencies
+        run: lein deps
+      - name: Solve day 2 challenge
+        run: |
+          echo $PUZZLE_INPUT_DAY_2 > /tmp/puzzle-input-day-2
+          lein run -- --input-file /tmp/puzzle-input-day-2 --puzzle 2
+        env:
+          PUZZLE_INPUT_DAY_2: ${{ secrets.PUZZLE_INPUT_DAY_2}}
+
+  solve-day-3:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Install dependencies
+        run: lein deps
+      - name: Solve day 3 challenge
+        run: |
+          echo $PUZZLE_INPUT_DAY_3 > /tmp/puzzle-input-day-3
+          lein run -- --input-file /tmp/puzzle-input-day-3 --puzzle 3
+        env:
+          PUZZLE_INPUT_DAY_3: ${{ secrets.PUZZLE_INPUT_DAY_3}}
+
+  solve-day-4:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Install dependencies
+        run: lein deps
+      - name: Solve day 4 challenge
+        run: |
+          echo $PUZZLE_INPUT_DAY_4 > /tmp/puzzle-input-day-4
+          lein run -- --input-file /tmp/puzzle-input-day-4 --puzzle 4
+        env:
+          PUZZLE_INPUT_DAY_4: ${{ secrets.PUZZLE_INPUT_DAY_4}}
+
+  solve-day-5:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Install dependencies
+        run: lein deps
+      - name: Solve day 5 challenge
+        run: |
+          echo $PUZZLE_INPUT_DAY_5 > /tmp/puzzle-input-day-5
+          lein run -- --input-file /tmp/puzzle-input-day-5 --puzzle 5
+        env:
+          PUZZLE_INPUT_DAY_5: ${{ secrets.PUZZLE_INPUT_DAY_5}}
+
+  solve-day-6:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Install dependencies
+        run: lein deps
+      - name: Solve day 6 challenge
+        run: |
+          echo $PUZZLE_INPUT_DAY_6 > /tmp/puzzle-input-day-6
+          lein run -- --input-file /tmp/puzzle-input-day-6 --puzzle 6
+        env:
+          PUZZLE_INPUT_DAY_6: ${{ secrets.PUZZLE_INPUT_DAY_6}}
