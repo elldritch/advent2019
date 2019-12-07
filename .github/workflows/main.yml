@@ -1,0 +1,37 @@
+name: Build, run, and test
+on: [push, pull_request]
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install dependencies
+      run: lein deps
+    - name: Run tests
+      run: lein test
+    - name: Solve puzzles
+      run: |
+        echo $PUZZLE_INPUT_DAY_1 > /tmp/puzzle-input-day-1
+        lein run -- --input-file /tmp/puzzle-input-day-1 --puzzle 1
+
+        echo $PUZZLE_INPUT_DAY_2 > /tmp/puzzle-input-day-2
+        lein run -- --input-file /tmp/puzzle-input-day-2 --puzzle 2
+
+        echo $PUZZLE_INPUT_DAY_3 > /tmp/puzzle-input-day-3
+        lein run -- --input-file /tmp/puzzle-input-day-3 --puzzle 3
+
+        echo $PUZZLE_INPUT_DAY_4 > /tmp/puzzle-input-day-4
+        lein run -- --input-file /tmp/puzzle-input-day-4 --puzzle 4
+
+        echo $PUZZLE_INPUT_DAY_5 > /tmp/puzzle-input-day-5
+        lein run -- --input-file /tmp/puzzle-input-day-5 --puzzle 5
+
+        echo $PUZZLE_INPUT_DAY_6 > /tmp/puzzle-input-day-6
+        lein run -- --input-file /tmp/puzzle-input-day-6 --puzzle 6
+      env:
+        PUZZLE_INPUT_DAY_1: ${{ secrets.PUZZLE_INPUT_DAY_1}}
+        PUZZLE_INPUT_DAY_2: ${{ secrets.PUZZLE_INPUT_DAY_2}}
+        PUZZLE_INPUT_DAY_3: ${{ secrets.PUZZLE_INPUT_DAY_3}}
+        PUZZLE_INPUT_DAY_4: ${{ secrets.PUZZLE_INPUT_DAY_4}}
+        PUZZLE_INPUT_DAY_5: ${{ secrets.PUZZLE_INPUT_DAY_5}}
+        PUZZLE_INPUT_DAY_6: ${{ secrets.PUZZLE_INPUT_DAY_6}}
