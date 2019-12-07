@@ -32,19 +32,19 @@ jobs:
         PUZZLE_INPUT_DAY_3: ${{ secrets.PUZZLE_INPUT_DAY_3}}
     - name: Solve day 4 challenge
       run: |
-        echo $PUZZLE_INPUT_DAY_4 > /tmp/puzzle-input-day-1
-        lein run -- --input-file /tmp/puzzle-input-day-4 --puzzle 1
+        echo $PUZZLE_INPUT_DAY_4 > /tmp/puzzle-input-day-4
+        lein run -- --input-file /tmp/puzzle-input-day-4 --puzzle 4
       env:
         PUZZLE_INPUT_DAY_4: ${{ secrets.PUZZLE_INPUT_DAY_4}}
     - name: Solve day 5 challenge
       run: |
-        echo $PUZZLE_INPUT_DAY_5 > /tmp/puzzle-input-day-1
-        lein run -- --input-file /tmp/puzzle-input-day-5 --puzzle 1
+        echo $PUZZLE_INPUT_DAY_5 > /tmp/puzzle-input-day-5
+        lein run -- --input-file /tmp/puzzle-input-day-5 --puzzle 5
       env:
         PUZZLE_INPUT_DAY_5: ${{ secrets.PUZZLE_INPUT_DAY_5}}
     - name: Solve day 6 challenge
       run: |
-        echo $PUZZLE_INPUT_DAY_6 > /tmp/puzzle-input-day-1
-        lein run -- --input-file /tmp/puzzle-input-day-6 --puzzle 1
+        echo $PUZZLE_INPUT_DAY_6 > /tmp/puzzle-input-day-6
+        lein run -- --input-file /tmp/puzzle-input-day-6 --puzzle 6
       env:
         PUZZLE_INPUT_DAY_6: ${{ secrets.PUZZLE_INPUT_DAY_6}}
