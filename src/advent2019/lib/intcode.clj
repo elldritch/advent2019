@@ -87,7 +87,7 @@
         :jump-if-false (recur state
                               input
                               outputs
-                              (if (= 0 (i :test)) (i :jump-to) (+ pc 3)))
+                              (if (zero? (i :test)) (i :jump-to) (+ pc 3)))
         :less-than (recur (assoc state (i :store-in) (if (< (i :a) (i :b)) 1 0))
                           input
                           outputs
