@@ -21,5 +21,32 @@
 
 (defn count-orbits [graph] (count-orbits' graph "COM" 0))
 
+(defn graph-to-primaries [graph]
+  (reduce-kv (fn [primaries primary satellites]
+               (reduce #(assoc %1 %2 primary) primaries satellites))
+             {} graph))
+
+(defn minimum-orbital-transfers [graph start end]
+  (let [primaries (graph-to-primaries graph)]
+    (loop [{:keys [distance from] current :body} {:body start
+                                                  :distance 0
+                                                  :from nil}
+           queue []]
+      (let [satellites (get graph current)
+            primary (get primaries current)
+            adjacent (disj (set (conj satellites primary)) from)
+            queue' (into (mapv #(assoc {:distance (inc distance)
+                                        :from current}
+                                       :body %)
+                               adjacent) queue)]
+        (cond
+          (= current end) distance
+          (empty? queue') :unreachable
+          :else (recur
+                 (peek queue')
+                 (pop queue')))))))
+
 (defn solve! [file]
-  (println "Orbits count: " (count-orbits (orbits-to-graph (load-orbits! file)))))
+  (let [graph (orbits-to-graph (load-orbits! file))]
+    (println "Orbits count:" (count-orbits graph))
+    (println "Minimum orbital transfers:" (- (minimum-orbital-transfers graph "YOU" "SAN") 2))))
