@@ -15,10 +15,11 @@
 (defn- count-orbits' [graph primary ancestors]
   (let [satellites (get graph primary)]
     (if (empty? satellites)
-      {:orbits (inc ancestors)}
-      (reduce + 0 (map :orbits (map #(count-orbits' graph % (inc ancestors)) satellites))))))
+      ancestors
+      (+ ancestors
+         (reduce + 0 (map #(count-orbits' graph % (inc ancestors)) satellites))))))
 
 (defn count-orbits [graph] (count-orbits' graph "COM" 0))
 
 (defn solve! [file]
-  (throw (Exception. "not yet unimplemented")))
+  (println "Orbits count: " (count-orbits (orbits-to-graph (load-orbits! file)))))
