@@ -20,9 +20,9 @@ jobs:
         run: lein test
 
       - name: Solve day 1 challenge
+        # We use `jq` workarounds when the input file has multiple lines,
+        # because GitHub Actions Secrets swallow newlines.
         run: |
-          # We use `jq` workarounds when the input file has multiple lines,
-          # because GitHub Actions Secrets swallow newlines.
           echo -n $PUZZLE_INPUT_DAY_1 | jq -r . | head -c -1 > /tmp/puzzle-input-day-1
           lein run -- --input-file /tmp/puzzle-input-day-1 --puzzle 1
         env:
