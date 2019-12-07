@@ -2,7 +2,7 @@
   (:require [advent2019.lib.intcode :refer [load-program! run-program]]))
 
 (defn tests-ok? [outputs]
-  (= 0 (reduce + 0 (take (dec (count outputs)) outputs))))
+  (zero? (reduce + 0 (take (dec (count outputs)) outputs))))
 
 (defn solve! [file]
   (let [program (load-program! file)
