@@ -4,14 +4,15 @@
 (defn interpret-program [noun verb program]
   (let [program' (assoc program 1 noun)
         program'' (assoc program' 2 verb)]
-    (first (:state (run-program program'' nil)))))
+    (first (:state (run-program program'')))))
 
 (defn int-pairs
   ([] (int-pairs 0))
   ([n]
-   (lazy-seq (concat
-    (apply concat (map (fn [x] (map #(vector x %) (range n))) (range n)))
-    (int-pairs (inc n))))))
+   (lazy-seq
+    (concat
+     (mapcat (fn [x] (map #(vector x %) (range n))) (range n))
+     (int-pairs (inc n))))))
 
 (defn inputs-for [output program]
   (first

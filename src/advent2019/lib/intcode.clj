@@ -57,43 +57,44 @@
                        :pc pc
                        :state state})))))
 
-(defn run-program [program inputs]
+(defn run-program-from-pc [program from-pc]
   (loop [state program
-         input inputs
-         outputs []
-         pc 0]
+         pc from-pc]
     (let [i (next-instruction state pc)]
       (case (:op i)
         :add (recur (assoc state (:store-in i) (+ (:a i) (:b i)))
-                    input
-                    outputs
                     (+ pc 4))
         :multiply (recur (assoc state (:store-in i) (* (:a i) (:b i)))
-                         input
-                         outputs
                          (+ pc 4))
-        :input (recur (assoc state (:store-in i) (peek input))
-                      (pop input)
-                      outputs
-                      (+ pc 2))
-        :output (recur state
-                       input
-                       (conj outputs (:output i))
-                       (+ pc 2))
+        :input {:status :needs-input
+                :store-in (:store-in i)
+                :state state
+                :pc (+ pc 2)}
+        :output {:status :has-output
+                 :output (:output i)
+                 :state state
+                 :pc (+ pc 2)}
         :jump-if-true (recur state
-                             input
-                             outputs
                              (if (not= 0 (:test i)) (:jump-to i) (+ pc 3)))
         :jump-if-false (recur state
-                              input
-                              outputs
                               (if (zero? (:test i)) (:jump-to i) (+ pc 3)))
         :less-than (recur (assoc state (:store-in i) (if (< (:a i) (:b i)) 1 0))
-                          input
-                          outputs
                           (+ pc 4))
         :equals (recur (assoc state (:store-in i) (if (= (:a i) (:b i)) 1 0))
-                       input
-                       outputs
                        (+ pc 4))
-        :halt {:state state :input input :outputs outputs :pc pc}))))
+        :halt {:status :halted
+               :state state
+               :pc pc}))))
+
+(defn resume-program [continuation]
+  (if (= (:status continuation) :has-output)
+    (run-program-from-pc (:state continuation) (:pc continuation))
+    (throw (ex-info "illegal program resumption" continuation))))
+
+(defn resume-program-with-input [continuation input]
+  (if (= (:status continuation) :needs-input)
+    (run-program-from-pc (assoc (:state continuation) (:store-in continuation) input)
+                         (:pc continuation))
+    (throw (ex-info "illegal program input" continuation))))
+
+(defn run-program [program] (run-program-from-pc program 0))
