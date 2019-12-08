@@ -4,3 +4,5 @@
   (if (pos? n)
     (conj (digits (quot n 10)) (mod n 10))
     []))
+
+(defn abs [n] (if (pos? n) n (* -1 n)))
