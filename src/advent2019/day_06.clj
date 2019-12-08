@@ -13,7 +13,7 @@
           {} orbits))
 
 (defn- count-orbits' [graph primary ancestors]
-  (let [satellites (get graph primary)]
+  (let [satellites (graph primary)]
     (if (empty? satellites)
       ancestors
       (+ ancestors
@@ -32,8 +32,8 @@
                                                   :distance 0
                                                   :from nil}
            queue []]
-      (let [satellites (get graph current)
-            primary (get primaries current)
+      (let [satellites (graph current)
+            primary (primaries current)
             adjacent (disj (set (conj satellites primary)) from)
             queue' (into (mapv #(assoc {:distance (inc distance)
                                         :from current}

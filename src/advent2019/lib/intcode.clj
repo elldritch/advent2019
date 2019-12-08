@@ -64,35 +64,35 @@
          pc 0]
     (let [i (next-instruction state pc)]
       (case (:op i)
-        :add (recur (assoc state (i :store-in) (+ (i :a) (i :b)))
+        :add (recur (assoc state (:store-in i) (+ (:a i) (:b i)))
                     input
                     outputs
                     (+ pc 4))
-        :multiply (recur (assoc state (i :store-in) (* (i :a) (i :b)))
+        :multiply (recur (assoc state (:store-in i) (* (:a i) (:b i)))
                          input
                          outputs
                          (+ pc 4))
-        :input (recur (assoc state (i :store-in) (peek input))
+        :input (recur (assoc state (:store-in i) (peek input))
                       (pop input)
                       outputs
                       (+ pc 2))
         :output (recur state
                        input
-                       (conj outputs (i :output))
+                       (conj outputs (:output i))
                        (+ pc 2))
         :jump-if-true (recur state
                              input
                              outputs
-                             (if (not= 0 (i :test)) (i :jump-to) (+ pc 3)))
+                             (if (not= 0 (:test i)) (:jump-to i) (+ pc 3)))
         :jump-if-false (recur state
                               input
                               outputs
-                              (if (zero? (i :test)) (i :jump-to) (+ pc 3)))
-        :less-than (recur (assoc state (i :store-in) (if (< (i :a) (i :b)) 1 0))
+                              (if (zero? (:test i)) (:jump-to i) (+ pc 3)))
+        :less-than (recur (assoc state (:store-in i) (if (< (:a i) (:b i)) 1 0))
                           input
                           outputs
                           (+ pc 4))
-        :equals (recur (assoc state (i :store-in) (if (= (i :a) (i :b)) 1 0))
+        :equals (recur (assoc state (:store-in i) (if (= (:a i) (:b i)) 1 0))
                        input
                        outputs
                        (+ pc 4))

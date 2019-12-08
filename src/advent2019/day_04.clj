@@ -33,7 +33,7 @@
                              {:last d :run 1})
                            {:last d :run (inc run)}))
                        {:last nil :run 0} (digits n))]
-    (or (:ok result) (= (result :run) 2))))
+    (or (:ok result) (= (:run result) 2))))
 
 (defn meets-extra-criteria? [n]
   (and

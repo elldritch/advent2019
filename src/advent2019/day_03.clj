@@ -36,7 +36,7 @@
                            :direction :left :steps steps} lines))}))
 
 (defn paths-to-lines [paths]
-  ((reduce acc-path-to-line {:lines () :position [0 0] :steps 0} paths) :lines))
+  (:lines (reduce acc-path-to-line {:lines () :position [0 0] :steps 0} paths)))
 
 (defn between [low x high] (or (and (< low x) (< x high))
                                (and (< high x) (< x low))))
@@ -45,43 +45,43 @@
 
 (defn steps-to-intersection-of-line-from-position [{:keys [direction steps] :as line} [x y]]
   (case direction
-    :up (+ steps (distance y (line :bottom)) (distance x (line :x)))
-    :down (+ steps (distance y (line :top)) (distance x (line :x)))
-    :right (+ steps (distance x (line :left)) (distance y (line :y)))
-    :left (+ steps (distance x (line :right)) (distance y (line :y)))))
+    :up (+ steps (distance y (:bottom line)) (distance x (:x line)))
+    :down (+ steps (distance y (:top line)) (distance x (:x line)))
+    :right (+ steps (distance x (:left line)) (distance y (:y line)))
+    :left (+ steps (distance x (:right line)) (distance y (:y line)))))
 
 (defn line-intersects-path-from-position? [line {:keys [direction] :as path} [x y]]
   (let [[x' y'] (move [x y] path)]
     (cond
       (or (= direction :up)
-          (= direction :down)) (and (line :horizontal)
-                                      (between (line :left) x (line :right))
-                                      (between y (line :y) y'))
+          (= direction :down)) (and (:horizontal line)
+                                      (between (:left line) x (:right line))
+                                      (between y (:y line) y'))
       (or (= direction :right)
-          (= direction :left)) (and (line :vertical)
-                                      (between (line :bottom) y (line :top))
-                                      (between x (line :x) x')))))
+          (= direction :left)) (and (:vertical line)
+                                      (between (:bottom line) y (:top line))
+                                      (between x (:x line) x')))))
 
 (defn line-intersection-with-path-from-position [line {:keys [direction]} [x y] path-steps]
   (cond
     (or (= direction :up)
-        (= direction :down)) {:x x :y (line :y)
+        (= direction :down)) {:x x :y (:y line)
                                 :steps (+ path-steps (steps-to-intersection-of-line-from-position line [x y]))}
     (or (= direction :right)
-        (= direction :left)) {:x (line :x) :y y
+        (= direction :left)) {:x (:x line) :y y
                                 :steps (+ path-steps (steps-to-intersection-of-line-from-position line [x y]))}))
 
 (defn acc-intersections-of-path [{:keys [lines position steps intersections]} path]
   {:lines lines
    :position (move position path)
-   :steps (+ steps (path :length))
+   :steps (+ steps (:length path))
    :intersections (concat intersections
                           (->> lines
                                (filter #(line-intersects-path-from-position? % path position))
                                (map #(line-intersection-with-path-from-position % path position steps))))})
 
 (defn intersections-of-lines-and-paths [lines paths]
-  ((reduce acc-intersections-of-path {:lines lines :position [0 0] :steps 0 :intersections ()} paths) :intersections))
+  (:intersections (reduce acc-intersections-of-path {:lines lines :position [0 0] :steps 0 :intersections ()} paths)))
 
 (defn manhattan [{:keys [x y]}] (+ (abs x) (abs y)))
 
