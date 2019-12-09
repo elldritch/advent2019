@@ -63,3 +63,9 @@ jobs:
           lein run -- --input-file /tmp/puzzle-input-day-7 --puzzle 7
         env:
           PUZZLE_INPUT_DAY_7: ${{ secrets.PUZZLE_INPUT_DAY_7}}
+      - name: Solve day 8 challenge
+        run: |
+          echo -n $PUZZLE_INPUT_DAY_8 > /tmp/puzzle-input-day-8
+          lein run -- --input-file /tmp/puzzle-input-day-8 --puzzle 8
+        env:
+          PUZZLE_INPUT_DAY_8: ${{ secrets.PUZZLE_INPUT_DAY_8}}
