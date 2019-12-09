@@ -1,0 +1,7 @@
+pull_request_rules:
+  - name: Automatically merge PRs when CI passes
+    conditions:
+      - status-success=continuous-integration/travis-ci/pr
+    actions:
+      merge:
+        method: merge
