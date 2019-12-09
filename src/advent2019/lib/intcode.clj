@@ -1,103 +1,130 @@
-(ns advent2019.lib.intcode
-  (:require [advent2019.lib :refer [digits]]))
+(ns advent2019.lib.intcode)
 
 (defn load-program! [file]
   (vec (map #(Integer/parseInt %)
             (clojure.string/split (slurp file) #","))))
 
-(defn parameter-mode [instruction-digits parameter-number]
-  (case (if (> (+ 2 parameter-number) (count instruction-digits))
-          0
-          (nth instruction-digits (- (count instruction-digits) (+ 2 parameter-number))))
+(defn opcode [instruction] (mod instruction 100))
+
+(defn parameter-mode [instruction parameter-number]
+  (case (mod (quot instruction (int (Math/pow 10 (+ 1 parameter-number)))) 10)
     0 :position
     1 :immediate
+    2 :relative
     (throw (ex-info "unknown parameter mode"
-                    {:instruction instruction-digits :parameter-number parameter-number}))))
+                    {:instruction instruction :parameter-number parameter-number}))))
 
-(defn parameter [instruction state pc n]
-  (let [parameter-value (nth state (+ pc n))]
-    (case (parameter-mode (digits instruction) n)
-      :position (nth state parameter-value)
-      :immediate parameter-value)))
+(defn read-parameter [instruction state pc relative-base n]
+  (let [parameter-value (get state (+ pc n) 0)]
+    (case (parameter-mode instruction n)
+      :position (get state parameter-value 0)
+      :immediate parameter-value
+      :relative (get state (+ parameter-value relative-base) 0))))
 
-(defn next-instruction [state pc]
-  (let [instruction (nth state pc)
-        parameter' (partial parameter instruction state pc)
-        slot (fn [n] (nth state (+ pc n)))]
-    (case (mod instruction 100)
+(defn write-parameter [instruction state pc relative-base n]
+  (let [parameter-value (get state (+ pc n) 0)]
+    (case (parameter-mode instruction n)
+      :position parameter-value
+      :immediate (ex-info "write parameters may never be in immediate mode"
+                          {:instruction instruction})
+      :relative (+ parameter-value relative-base))))
+
+(defn next-instruction [state pc relative-base]
+  (let [instruction (get state pc 0)
+        read-parameter' (partial read-parameter instruction state pc relative-base)
+        write-parameter' (partial write-parameter instruction state pc relative-base)]
+    (case (opcode instruction)
       1 {:op :add
-         :a (parameter' 1)
-         :b (parameter' 2)
-         :store-in (slot 3)}
+         :a (read-parameter' 1)
+         :b (read-parameter' 2)
+         :store-in (write-parameter' 3)}
       2 {:op :multiply
-         :a (parameter' 1)
-         :b (parameter' 2)
-         :store-in (slot 3)}
+         :a (read-parameter' 1)
+         :b (read-parameter' 2)
+         :store-in (write-parameter' 3)}
       3 {:op :input
-         :store-in (slot 1)}
+         :store-in (write-parameter' 1)}
       4 {:op :output
-         :output (parameter' 1)}
+         :output (read-parameter' 1)}
       5 {:op :jump-if-true
-         :test (parameter' 1)
-         :jump-to (parameter' 2)}
+         :test (read-parameter' 1)
+         :jump-to (read-parameter' 2)}
       6 {:op :jump-if-false
-         :test (parameter' 1)
-         :jump-to (parameter' 2)}
+         :test (read-parameter' 1)
+         :jump-to (read-parameter' 2)}
       7 {:op :less-than
-         :a (parameter' 1)
-         :b (parameter' 2)
-         :store-in (slot 3)}
+         :a (read-parameter' 1)
+         :b (read-parameter' 2)
+         :store-in (write-parameter' 3)}
       8 {:op :equals
-         :a (parameter' 1)
-         :b (parameter' 2)
-         :store-in (slot 3)}
+         :a (read-parameter' 1)
+         :b (read-parameter' 2)
+         :store-in (write-parameter' 3)}
+      9 {:op :adjust-relative-base
+         :adjust-by (read-parameter' 1)}
       99 {:op :halt}
       (throw (ex-info "unknown instruction"
                       {:instruction instruction
                        :pc pc
                        :state state})))))
 
-(defn run-program-from-pc [program from-pc]
-  (loop [state program
-         pc from-pc]
-    (let [i (next-instruction state pc)]
+(defn run-continuation [continuation]
+  (loop [state (:state continuation)
+         pc (:pc continuation)
+         relative-base (:relative-base continuation)]
+    (let [i (next-instruction state pc relative-base)]
       (case (:op i)
         :add (recur (assoc state (:store-in i) (+ (:a i) (:b i)))
-                    (+ pc 4))
+                    (+ pc 4)
+                    relative-base)
         :multiply (recur (assoc state (:store-in i) (* (:a i) (:b i)))
-                         (+ pc 4))
+                         (+ pc 4)
+                         relative-base)
         :input {:status :needs-input
                 :store-in (:store-in i)
                 :state state
-                :pc (+ pc 2)}
+                :pc (+ pc 2)
+                :relative-base relative-base}
         :output {:status :has-output
                  :output (:output i)
                  :state state
-                 :pc (+ pc 2)}
+                 :pc (+ pc 2)
+                 :relative-base relative-base}
         :jump-if-true (recur state
-                             (if (not= 0 (:test i)) (:jump-to i) (+ pc 3)))
+                             (if (not= 0 (:test i)) (:jump-to i) (+ pc 3))
+                             relative-base)
         :jump-if-false (recur state
-                              (if (zero? (:test i)) (:jump-to i) (+ pc 3)))
+                              (if (zero? (:test i)) (:jump-to i) (+ pc 3))
+                              relative-base)
         :less-than (recur (assoc state (:store-in i) (if (< (:a i) (:b i)) 1 0))
-                          (+ pc 4))
+                          (+ pc 4)
+                          relative-base)
         :equals (recur (assoc state (:store-in i) (if (= (:a i) (:b i)) 1 0))
-                       (+ pc 4))
+                       (+ pc 4)
+                       relative-base)
+        :adjust-relative-base (recur state
+                                     (+ pc 2)
+                                     (+ relative-base (:adjust-by i)))
         :halt {:status :halted
                :state state
-               :pc pc}))))
+               :pc pc
+               :relative-base relative-base}))))
 
 (defn resume-program [continuation]
   (if (= (:status continuation) :has-output)
-    (run-program-from-pc (:state continuation) (:pc continuation))
+    (run-continuation continuation)
     (throw (ex-info "illegal program resumption" continuation))))
 
 (defn resume-program-with-input [continuation input]
-  (if (= (:status continuation) :needs-input)
-    (run-program-from-pc (assoc (:state continuation) (:store-in continuation) input)
-                         (:pc continuation))
-    (throw (ex-info "illegal program input" continuation))))
+  (let [{:keys [status state store-in]} continuation]
+    (if (= status :needs-input)
+      (run-continuation (assoc continuation :state (assoc state store-in input)))
+      (throw (ex-info "illegal program input" continuation)))))
 
-(defn run-program [program] (run-program-from-pc program 0))
+(defn run-program [program]
+  (run-continuation {:state (zipmap (range) program)
+                     :pc 0
+                     :relative-base 0}))
 
 (defn gather-outputs [continuation]
   (loop [continuation' continuation

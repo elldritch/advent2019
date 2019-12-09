@@ -2,19 +2,13 @@
   (:require [clojure.test :refer [deftest is testing]]
             [advent2019.lib.intcode :refer [run-program
                                             resume-program
-                                            resume-program-with-input]]))
-
-(defn expect [property input program expected]
-  (is (= (property
-          (if (nil? input)
-            (run-program program)
-            (resume-program-with-input (run-program program) input)))
-         expected)))
+                                            resume-program-with-input
+                                            gather-outputs]]))
 
 (defn expect-halted-state [program expected]
   (let [result (run-program program)]
     (is (and (= (:status result) :halted)
-             (= (:state result) expected)))))
+             (= (:state result) (zipmap (range) expected))))))
 
 (defn expect-output-for-input [program input output]
   (let [needs-input (run-program program)
@@ -24,6 +18,11 @@
              (= (:status has-output) :has-output)
              (= (:output has-output) output)
              (= (:status halted) :halted)))))
+
+(defn expect-outputs [program outputs]
+  (is (= outputs (:outputs (gather-outputs (run-program program))))))
+
+(defn expect-output [program output] (expect-outputs program [output]))
 
 (deftest intcode
   (testing "addition and multiplication instructions"
@@ -76,4 +75,10 @@
       (expect-output-for-input cmp-8 7 999)
       (expect-output-for-input cmp-8 8 1000)
       (expect-output-for-input cmp-8 9 1001)
-      (expect-output-for-input cmp-8 10 1001))))
+      (expect-output-for-input cmp-8 10 1001)))
+  (testing "large numbers"
+    (expect-output [1102 34915192 34915192 7 4 7 99 0] 1219070632396864)
+    (expect-output [104 1125899906842624 99] 1125899906842624))
+  (testing "relative base"
+    (let [quine [109 1 204 -1 1001 100 1 100 1008 100 16 101 1006 101 0 99]]
+      (expect-outputs quine quine))))

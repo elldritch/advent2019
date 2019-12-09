@@ -4,7 +4,7 @@
 (defn interpret-program [noun verb program]
   (let [program' (assoc program 1 noun)
         program'' (assoc program' 2 verb)]
-    (first (:state (run-program program'')))))
+    (get (:state (run-program program'')) 0)))
 
 (defn int-pairs
   ([] (int-pairs 0))
@@ -22,7 +22,7 @@
            {:noun noun
             :verb verb
             :output (interpret-program noun verb program)})
-         (int-pairs)))))
+         (distinct (int-pairs))))))
 
 (defn solve! [file]
   (let [program (load-program! file)

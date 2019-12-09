@@ -1,5 +1,4 @@
-(ns advent2019.day-03
-  (:require [advent2019.lib :refer [abs]]))
+(ns advent2019.day-03)
 
 (defn parse [input]
   (map #(map (fn [[direction & length]]
@@ -41,6 +40,8 @@
 
 (defn between [low x high] (or (and (< low x) (< x high))
                                (and (< high x) (< x low))))
+
+(defn abs [n] (if (pos? n) n (* -1 n)))
 
 (defn distance [a b] (abs (- a b)))
 
