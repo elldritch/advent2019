@@ -98,3 +98,11 @@
     (throw (ex-info "illegal program input" continuation))))
 
 (defn run-program [program] (run-program-from-pc program 0))
+
+(defn gather-outputs [continuation]
+  (loop [continuation' continuation
+         outputs []]
+    (if (= (:status continuation') :has-output)
+      (recur (resume-program continuation') (conj outputs (:output continuation')))
+      {:continuation continuation'
+       :outputs outputs})))
