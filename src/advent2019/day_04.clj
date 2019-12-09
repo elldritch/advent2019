@@ -1,8 +1,12 @@
-(ns advent2019.day-04
-  (:require [advent2019.lib :refer [digits]]))
+(ns advent2019.day-04)
 
 (defn parse [text]
   (vec (map #(Integer/parseInt %) (clojure.string/split text #"-"))))
+
+(defn digits [n]
+  (if (pos? n)
+    (conj (digits (quot n 10)) (mod n 10))
+    []))
 
 (defn two-adjacent-digits-same? [n]
   (:ok (reduce (fn [last d] (if (= last d) (reduced {:ok true}) d))
