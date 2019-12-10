@@ -1,12 +1,7 @@
-(ns advent2019.day-10)
+(ns advent2019.day-10
+  (:require [clojure.set]))
 
-(defn parse [lines]
-  (clojure.string/split-lines lines))
-
-(defn load-file! [file]
-  (parse (slurp file)))
-
-(defn get-in-grid [grid x y] (get (grid y) x))
+(defn get-in-grid [grid x y] ((grid y) x))
 
 (defn grid-to-coordinates [grid]
   (apply concat (map-indexed #(map-indexed (fn [x point]
@@ -16,6 +11,12 @@
 
 (defn asteroids [grid]
   (map #(dissoc % :at) (filter #(= \# (:at %)) (grid-to-coordinates grid))))
+
+(defn parse [lines]
+  (let [grid (vec (map #(vec (char-array %)) (clojure.string/split-lines lines)))
+        asteroid-list (vec (asteroids grid))]
+    {:grid grid
+     :asteroids asteroid-list}))
 
 (defn slope [a b]
   ; This is an awful hack to represent vertical lines with infinite slope. We
@@ -42,35 +43,21 @@
         points' (ray a (- dx) (- dy))]
     (concat (points-between a b points) (points-between a b points'))))
 
-(defn visible? [grid a b]
+(defn visible? [region a b]
   (if (and (= (:x a) (:x b))
            (= (:y a) (:y b)))
     false
-    (reduce #(and %1 (not= \# (get-in-grid grid (:x %2) (:y %2))))
+    (reduce #(and %1 (not= \# (get-in-grid (:grid region) (:x %2) (:y %2))))
             true
             (lattice-points-between a b))))
 
-; here's the problem: this needs a grid when i'm providing it an asteroid list.
-(defn visible-asteroids [grid point]
-  (filter #(visible? grid point %) (asteroids grid)))
+(defn visible-asteroids [region point]
+  (filter #(visible? region point %) (:asteroids region)))
 
-(defn position-with-most-asteroids-visible [grid]
-  (->> (grid-to-coordinates grid)
-       (filter #(= (:at %) \#))
-       (map #(dissoc % :at))
-       (map #(assoc % :visible (count (visible-asteroids grid %))))
+(defn position-with-most-asteroids-visible [region]
+  (->> (:asteroids region)
+       (map #(assoc % :visible (count (visible-asteroids region %))))
        (apply max-key :visible)))
-
-
-; Find all asteroids visible from the monitoring station.
-
-; Sort visible asteroids in clockwise order. (Use atan2?)
-
-; Add asteroids in this order to the vaporisation list.
-
-; Remove vaporised asteroids (i.e. first layer) from the grid.
-
-; Repeat.
 
 (defn angle-clockwise-from-up [origin point]
   (let [dx (- (:x point) (:x origin))
@@ -78,17 +65,31 @@
         at2 (java.lang.Math/atan2 dx dy)]
     (if (neg? at2) (+ at2 (* 2 java.lang.Math/PI)) at2)))
 
-(defn vaporization-order [grid]
-  (let [origin (position-with-most-asteroids-visible grid)]
-    (loop [remaining (set (asteroids grid))
+(defn vaporize-asteroids [region vaporized]
+  {:grid (reduce (fn [grid a]
+                   (assoc grid
+                          (:y a)
+                          (assoc (get grid (:y a) {}) (:x a) \.)))
+                 (:grid region)
+                 vaporized)
+   :asteroids (clojure.set/difference (set (:asteroids region)) (set vaporized))})
+
+(defn vaporization-order [region]
+  (let [origin (dissoc (position-with-most-asteroids-visible region) :visible)]
+    (loop [remaining (vaporize-asteroids region [origin])
            acc ()]
       (let [vaporized-in-layer (filter (set (visible-asteroids remaining origin))
-                                       (sort-by #(angle-clockwise-from-up origin %) remaining))
-            remaining' (clojure.set/difference remaining (set vaporized-in-layer))
+                                       (sort-by #(angle-clockwise-from-up origin %) (:asteroids remaining)))
+            remaining' (vaporize-asteroids remaining vaporized-in-layer)
             vaporized (concat acc vaporized-in-layer)]
-        (if (empty? remaining')
+        (if (empty? (:asteroids remaining'))
           vaporized
           (recur remaining' vaporized))))))
 
 (defn solve! [file]
-  (println "Position with most asteroids visible:" (position-with-most-asteroids-visible (load-file! file))))
+  (let [region (parse (slurp file))
+        vaporized (vaporization-order region)
+        bet (nth vaporized 199)]
+    (println "Position with most asteroids visible:" (position-with-most-asteroids-visible region))
+    (println "200th asteroid to be vaporized:" bet)
+    (println "Part 2 answer:" (+ (* 100 (:x bet)) (:y bet)))))
