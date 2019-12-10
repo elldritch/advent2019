@@ -41,7 +41,7 @@
 (defn between [low x high] (or (and (< low x) (< x high))
                                (and (< high x) (< x low))))
 
-(defn abs [n] (if (pos? n) n (* -1 n)))
+(defn abs [n] (if (pos? n) n (- n)))
 
 (defn distance [a b] (abs (- a b)))
 
