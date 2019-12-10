@@ -80,7 +80,7 @@
 (deftest asteroid-monitoring
   (testing "asteroid visibility"
     (is (->> (grid-to-coordinates (parse visible-1))
-             (map #(assoc % :visible (visible-asteroids (parse map-1) %)))
+             (map #(assoc % :visible (count (visible-asteroids (parse map-1) %))))
              (map #(or (= \. (:at %)) (= (Character/digit (:at %) 10) (:visible %))))
              (reduce #(and %1 %2))))
     (is (expect map-2 5 8 33))
