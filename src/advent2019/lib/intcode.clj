@@ -1,4 +1,7 @@
-(ns advent2019.lib.intcode)
+(ns advent2019.lib.intcode
+  (:require [clojure.spec.alpha :as s]))
+
+(s/def ::continuation int?)
 
 (defn load-program! [file]
   (vec (map #(Integer/parseInt %)
