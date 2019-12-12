@@ -9,7 +9,7 @@
 
 (defn orbits-to-graph [orbits]
   (reduce (fn [graph [primary satellite]]
-            (assoc graph primary (conj (get graph primary []) satellite)))
+            (update graph primary #(conj (if (nil? %) [] %) satellite)))
           {} orbits))
 
 (defn- count-orbits' [graph primary ancestors]
