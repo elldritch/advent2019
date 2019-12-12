@@ -74,9 +74,8 @@
   #(concat (map axis (map :position %))
            (map axis (map :velocity %))))
 
-(defn solve! [file]
-  (let [moons (load-file! file)
-        fix-x (fixpoint time-step (moon-axis :x) moons)
+(defn moon-period [moons]
+  (let [fix-x (fixpoint time-step (moon-axis :x) moons)
         fix-y (fixpoint time-step (moon-axis :y) moons)
         fix-z (fixpoint time-step (moon-axis :z) moons)
         ; TODO: in general, we also need to take initial offsets into account
@@ -85,5 +84,9 @@
         period-x (- (:repeat-seen fix-x) (:first-seen fix-x))
         period-y (- (:repeat-seen fix-y) (:first-seen fix-y))
         period-z (- (:repeat-seen fix-z) (:first-seen fix-z))]
+    (lcm (lcm period-x period-y) period-z)))
+
+(defn solve! [file]
+  (let [moons (load-file! file)]
     (println "Total energy after 1000 steps:" (total-energy (simulate moons 1000)))
-    (println "Steps before repeating a previous state:" (lcm (lcm period-x period-y) period-z))))
+    (println "Steps before repeating a previous state:" (moon-period moons))))
