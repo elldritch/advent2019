@@ -19,9 +19,9 @@
      :asteroids asteroid-list}))
 
 (defn slope [a b]
-  ; This is an awful hack to represent vertical lines with infinite slope. We
-  ; would cause a divide-by-zero trying to use / here.
   (if (= (:x a) (:x b))
+    ; This is an awful hack to represent vertical lines with infinite slope. We
+    ; would cause a divide-by-zero trying to use / here.
     (clojure.lang.Ratio. (biginteger 1) (biginteger 0))
     (clojure.lang.Numbers/toRatio (/ (- (:y b) (:y a)) (- (:x b) (:x a))))))
 
@@ -67,9 +67,7 @@
 
 (defn vaporize-asteroids [region vaporized]
   {:grid (reduce (fn [grid a]
-                   (assoc grid
-                          (:y a)
-                          (assoc (get grid (:y a) {}) (:x a) \.)))
+                   (update grid (:y a) #(assoc (if (nil? %) {} %) (:x a) \.)))
                  (:grid region)
                  vaporized)
    :asteroids (clojure.set/difference (set (:asteroids region)) (set vaporized))})
