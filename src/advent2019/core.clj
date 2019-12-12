@@ -10,6 +10,7 @@
             [advent2019.day-09 :as day9]
             [advent2019.day-10 :as day10]
             [advent2019.day-11 :as day11]
+            [advent2019.day-12 :as day12]
             [clojure.tools.cli :refer [parse-opts]])
   (:gen-class))
 
@@ -60,6 +61,7 @@
         9 (day9/solve! file)
         10 (day10/solve! file)
         11 (day11/solve! file)
+        12 (day12/solve! file)
         (do
           (println "Error: invalid puzzle number")
           (System/exit 1))))))
