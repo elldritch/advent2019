@@ -90,4 +90,4 @@
         bet (nth vaporized 199)]
     (println "Position with most asteroids visible:" (position-with-most-asteroids-visible region))
     (println "200th asteroid to be vaporized:" bet)
-    (println "Part 2 answer:" (+ (* 100 (:x bet)) (:y bet)))))
+    (println "x * 100 + y:" (+ (* 100 (:x bet)) (:y bet)))))

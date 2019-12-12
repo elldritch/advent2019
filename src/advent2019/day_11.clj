@@ -88,13 +88,19 @@
         min-y (extreme-map-key min :y grid)
         max-x (extreme-map-key max :x grid)
         max-y (extreme-map-key max :y grid)]
-    (map (fn [y] (clojure.string/join "" (map (fn [x] (case (get grid {:x x :y y} :black)
-                                :black " "
-                                :white "X"))
-                      (range min-x (inc max-x)))))
-         (reverse (range min-y (inc max-y))))))
+    (clojure.string/join
+     \newline
+     (map (fn [y]
+            (clojure.string/join
+             ""
+             (map (fn [x] (case (get grid {:x x :y y} :black)
+                            :black " "
+                            :white "X"))
+                  (range min-x (inc max-x)))))
+          (reverse (range min-y (inc max-y)))))))
 
 (defn solve! [file]
   (let [program (intcode/load-program! file)]
     (println "Total squares painted:" (count (run-robot program {})))
-    (println "Registration identifier:" (show-grid (run-robot program {{:x 0 :y 0} :white})))))
+    (println "Registration identifier:\n")
+    (println (show-grid (run-robot program {{:x 0 :y 0} :white})))))
