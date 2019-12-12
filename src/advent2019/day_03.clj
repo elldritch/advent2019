@@ -1,4 +1,5 @@
-(ns advent2019.day-03)
+(ns advent2019.day-03
+  (:require [clojure.math.numeric-tower :refer [abs]]))
 
 (defn parse [input]
   (map #(map (fn [[direction & length]]
@@ -40,8 +41,6 @@
 
 (defn between [low x high] (or (and (< low x) (< x high))
                                (and (< high x) (< x low))))
-
-(defn abs [n] (if (pos? n) n (- n)))
 
 (defn distance [a b] (abs (- a b)))
 
