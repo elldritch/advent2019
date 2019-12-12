@@ -83,7 +83,7 @@ jobs:
           PUZZLE_INPUT_DAY_10: ${{ secrets.PUZZLE_INPUT_DAY_10}}
       - name: Solve day 11 challenge
         run: |
-          echo -n $PUZZLE_INPUT_DAY_11 | jq -r . | head -c -1 > /tmp/puzzle-input-day-11
+          echo -n $PUZZLE_INPUT_DAY_11 > /tmp/puzzle-input-day-11
           lein run -- --input-file /tmp/puzzle-input-day-11 --puzzle 11
         env:
           PUZZLE_INPUT_DAY_11: ${{ secrets.PUZZLE_INPUT_DAY_11}}
