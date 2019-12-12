@@ -2,7 +2,7 @@
   (:require [clojure.math.numeric-tower :refer [abs lcm]]))
 
 (defn load-file! [file]
-  (->> "inputs/12"
+  (->> file
        (slurp)
        (clojure.string/split-lines)
        (mapv #(->> (re-matcher #"<x=(-?[0-9]+?), y=(-?[0-9]+?), z=(-?[0-9]+?)>" %)
