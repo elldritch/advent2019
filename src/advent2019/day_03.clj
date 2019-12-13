@@ -1,5 +1,5 @@
 (ns advent2019.day-03
-  (:require [clojure.math.numeric-tower :refer [abs]]))
+  (:require [clojure.math.numeric-tower :as clojure.math]))
 
 (defn parse [input]
   (map #(map (fn [[direction & length]]
@@ -42,7 +42,7 @@
 (defn between [low x high] (or (and (< low x) (< x high))
                                (and (< high x) (< x low))))
 
-(defn distance [a b] (abs (- a b)))
+(defn distance [a b] (clojure.math/abs (- a b)))
 
 (defn steps-to-intersection-of-line-from-position [line point]
   (let [{:keys [direction steps]} line
@@ -90,7 +90,7 @@
 (defn intersections-of-lines-and-paths [lines paths]
   (:intersections (reduce acc-intersections-of-path {:lines lines :position [0 0] :steps 0 :intersections ()} paths)))
 
-(defn manhattan [{:keys [x y]}] (+ (abs x) (abs y)))
+(defn manhattan [{:keys [x y]}] (+ (clojure.math/abs x) (clojure.math/abs y)))
 
 (defn min-intersection [f wire-1 wire-2]
   (let [wire-1-lines (paths-to-lines wire-1)

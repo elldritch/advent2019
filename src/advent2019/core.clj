@@ -11,7 +11,7 @@
             [advent2019.day-10 :as day10]
             [advent2019.day-11 :as day11]
             [advent2019.day-12 :as day12]
-            [clojure.tools.cli :refer [parse-opts]])
+            [clojure.tools.cli])
   (:gen-class))
 
 ; Program runner
@@ -37,7 +37,7 @@
   [& args]
   (let [{{:keys [file puzzle]} :options
          errors :errors
-         summary :summary} (parse-opts args options)]
+         summary :summary} (clojure.tools.cli/parse-opts args options)]
     (cond
       errors (do
                (println (str (errors-msg errors) \newline (usage-msg summary)))

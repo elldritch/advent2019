@@ -1,5 +1,5 @@
 (ns advent2019.day-12
-  (:require [clojure.math.numeric-tower :refer [abs lcm]]))
+  (:require [clojure.math.numeric-tower :as clojure.math]))
 
 (defn load-file! [file]
   (->> file
@@ -45,7 +45,7 @@
        (apply-gravity)
        (apply-velocity)))
 
-(defn energyv [v] (reduce-kv (fn [e _ v'] (+ (abs v') e)) 0 v))
+(defn energyv [v] (reduce-kv (fn [e _ v'] (+ (clojure.math/abs v') e)) 0 v))
 
 (defn energy [moon]
   (* (energyv (:position moon))
@@ -84,7 +84,7 @@
         period-x (- (:repeat-seen fix-x) (:first-seen fix-x))
         period-y (- (:repeat-seen fix-y) (:first-seen fix-y))
         period-z (- (:repeat-seen fix-z) (:first-seen fix-z))]
-    (lcm (lcm period-x period-y) period-z)))
+    (clojure.math/lcm (clojure.math/lcm period-x period-y) period-z)))
 
 (defn solve! [file]
   (let [moons (load-file! file)]

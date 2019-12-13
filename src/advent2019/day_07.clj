@@ -1,17 +1,14 @@
 (ns advent2019.day-07
-  (:require [advent2019.lib.intcode :refer [run-program
-                                            load-program!
-                                            resume-program
-                                            resume-program-with-input]]))
+  (:require [advent2019.lib.intcode :as intcode]))
 
 (defn setup-amplifier [program phase]
-  {:continuation (resume-program-with-input (run-program program) phase)
+  {:continuation (intcode/resume-program-with-input (intcode/run-program program) phase)
    :signal nil
    :done false})
 
 (defn run-amplifier [amplifier signal]
-  (let [output (resume-program-with-input (:continuation amplifier) signal)
-        continuation (resume-program output)]
+  (let [output (intcode/resume-program-with-input (:continuation amplifier) signal)
+        continuation (intcode/resume-program output)]
     {:continuation continuation
      :signal (:output output)
      :done (= (:status continuation) :halted)}))
@@ -66,6 +63,6 @@
               (permutations [5 6 7 8 9])))
 
 (defn solve! [file]
-  (let [amplifier-program (load-program! file)]
+  (let [amplifier-program (intcode/load-program! file)]
     (println "Max thruster signal:" (max-thruster-signal amplifier-program))
     (println "Max feedback thruster signal:" (max-feedback-thruster-signal amplifier-program))))
