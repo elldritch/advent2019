@@ -16,8 +16,18 @@
   (let [tiles (:outputs (intcode/gather-outputs (intcode/run-program program)))]
     (map #(apply outputs-to-tile %) (partition 3 tiles))))
 
+(defn display-tiles [tiles]
+  (map (fn [row]
+         (apply str (map #(case (:tile-id %)
+                :empty " "
+                :wall "W"
+                :block "B"
+                :horizontal-paddle "P"
+                :ball "O") row)))
+       (partition-by :y (sort-by :y (sort-by :x tiles)))))
+
 (defn solve! [file]
   (let [program (intcode/load-program! file)
         tiles (tiles-on-exit program)]
     (println "Tiles on screen:" (count (filter #(= (:tile-id %) :block)
-                                               (tiles-on-exit program))))))
+                                               tiles)))))
