@@ -1,7 +1,7 @@
 (ns advent2019.day-13
   (:require [advent2019.lib.intcode :as intcode]))
 
-(defn tile-id-to-type [tile-id]
+(defn parse-tile-id [tile-id]
   (case tile-id
     0 :empty
     1 :wall
@@ -9,25 +9,57 @@
     3 :horizontal-paddle
     4 :ball))
 
-(defn outputs-to-tile [x y tile-id]
-  {:x x :y y :tile-id (tile-id-to-type tile-id)})
+(defn parse-triplet [x y z]
+  (if (and (= x -1) (= y 0))
+    {:type :score
+     :value z}
+    {:type (parse-tile-id z)
+     :x x
+     :y y}))
 
-(defn tiles-on-exit [program]
-  (let [tiles (:outputs (intcode/gather-outputs (intcode/run-program program)))]
-    (map #(apply outputs-to-tile %) (partition 3 tiles))))
+(defn tick [continuation]
+  (let [frame (intcode/gather-outputs continuation)
+        triplets (->> (:outputs frame)
+                      (partition 3)
+                      (map #(apply parse-triplet %))
+                      (group-by #(= (:type %) :score)))]
+    {:continuation (:continuation frame)
+     :tiles (get triplets false)
+     :score (:value (get triplets true {:value 0}))}))
 
-(defn display-tiles [tiles]
-  (map (fn [row]
-         (apply str (map #(case (:tile-id %)
-                :empty " "
-                :wall "W"
-                :block "B"
-                :horizontal-paddle "P"
-                :ball "O") row)))
-       (partition-by :y (sort-by :y (sort-by :x tiles)))))
+(defn display [frame]
+  (format
+   "Score: %s\n\n%s"
+   (:score frame)
+   (clojure.string/join
+    \newline
+    (map (fn [row]
+           (apply str (map #(case (:type %)
+                              :empty " "
+                              :wall "W"
+                              :block "B"
+                              :horizontal-paddle "P"
+                              :ball "O") row)))
+         (partition-by :y (sort-by :y (sort-by :x (:tiles frame))))))))
+
+(defn play! [program]
+  (loop [continuation (intcode/run-program (assoc program 0 2))]
+    (let [frame (tick continuation)
+          cont (:continuation frame)
+          status (:status cont)]
+      (println (display frame))
+      (println status)
+      (println (:tiles frame))
+      (if (= status :halted)
+        (:score frame)
+        (do
+          (print "Next joystick input: ")
+          (flush)
+          (recur (intcode/resume-program-with-input cont (Integer/parseInt (read-line)))))))))
 
 (defn solve! [file]
   (let [program (intcode/load-program! file)
-        tiles (tiles-on-exit program)]
-    (println "Tiles on screen:" (count (filter #(= (:tile-id %) :block)
-                                               tiles)))))
+        tiles (:tiles (tick (intcode/run-program program)))]
+    (println "Block tiles:" (count (filter #(= (:type %) :block)
+                                           tiles)))
+    (play! program)))
