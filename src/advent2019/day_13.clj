@@ -78,7 +78,7 @@
 
 (defn solve! [file]
   (let [program (intcode/load-program! file)
-        tiles (:tiles (tick (intcode/run-program program) (grid/grid) 0))]
-    (println "Block tiles:" (count (filter #(= (:type %) :block)
-                                           tiles)))
+        first-frame (tick (intcode/run-program program) (grid/grid) 0)]
+    (println "Block tiles:" (count (filter #(= (:value %) :block)
+                                           (grid/values (:tiles first-frame)))))
     (println "Score on completion:" (play program))))
