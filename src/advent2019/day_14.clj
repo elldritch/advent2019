@@ -53,6 +53,12 @@
 ; ORE as input ingredient is handled as special case
 ; 
 ; maybe this needs dynamic programming? reduce over (ways to create an X, ore needed)
+; subproblem = choose which input to simplify first
+
+(defn ore-for [inputs]
+  (if (and (= (count inputs) 1) (= (:ingredient (first inputs)) "ORE"))
+    (:quantity (first inputs))
+    ()))
 
 (defn reduce-input [{:keys [leftovers inputs]} ingredient quantity]
   ())
