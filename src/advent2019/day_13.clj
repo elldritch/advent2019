@@ -1,5 +1,7 @@
 (ns advent2019.day-13
-  (:require [advent2019.lib.intcode :as intcode]))
+  (:require [advent2019.lib.intcode :as intcode]
+            [advent2019.lib.grid :as grid]
+            [clojure.string :as str]))
 
 (defn parse-tile-id [tile-id]
   (case tile-id
@@ -17,49 +19,64 @@
      :x x
      :y y}))
 
-(defn tick [continuation]
-  (let [frame (intcode/gather-outputs continuation)
-        triplets (->> (:outputs frame)
-                      (partition 3)
-                      (map #(apply parse-triplet %))
-                      (group-by #(= (:type %) :score)))]
-    {:continuation (:continuation frame)
-     :tiles (get triplets false)
-     :score (:value (get triplets true {:value 0}))}))
+(defn reduce-frame [frame triplet]
+  (let [tile (apply parse-triplet triplet)]
+    (if (= (:type tile) :score)
+      (assoc frame :score (:value tile))
+      (update frame :tiles #(grid/grid-assoc %
+                                             (:x tile)
+                                             (:y tile)
+                                             (:type tile))))))
 
-(defn display [frame]
+(defn tick [continuation tiles score]
+  (let [computed (intcode/gather-outputs continuation)
+        frame (->> (:outputs computed)
+                   (partition 3)
+                   (reduce reduce-frame {:tiles tiles
+                                         :score score}))]
+    {:continuation (:continuation computed)
+     :tiles (:tiles frame)
+     :score (:score frame)}))
+
+(defn show [frame]
   (format
    "Score: %s\n\n%s"
    (:score frame)
-   (clojure.string/join
+   (str/join
     \newline
     (map (fn [row]
-           (apply str (map #(case (:type %)
+           (apply str (map #(case (:value %)
                               :empty " "
                               :wall "W"
                               :block "B"
                               :horizontal-paddle "P"
-                              :ball "O") row)))
-         (partition-by :y (sort-by :y (sort-by :x (:tiles frame))))))))
+                              :ball "O"
+                              (throw (ex-info "unknown tile type"
+                                              {:tile %})))
+                           row)))
+         (partition-by :y (grid/values (:tiles frame)))))))
 
 (defn play! [program]
-  (loop [continuation (intcode/run-program (assoc program 0 2))]
-    (let [frame (tick continuation)
+  (loop [continuation (intcode/run-program (assoc program 0 2))
+         tiles (grid/grid)
+         score 0]
+    (let [frame (tick continuation tiles score)
           cont (:continuation frame)
           status (:status cont)]
-      (println (display frame))
+      (println (show frame))
       (println status)
-      (println (:tiles frame))
       (if (= status :halted)
         (:score frame)
         (do
-          (print "Next joystick input: ")
+          (print "Next joystick input (-1, 0, 1): ")
           (flush)
-          (recur (intcode/resume-program-with-input cont (Integer/parseInt (read-line)))))))))
+          (recur (intcode/resume-program-with-input cont (Integer/parseInt (read-line)))
+                 (:tiles frame)
+                 (:score frame)))))))
 
 (defn solve! [file]
   (let [program (intcode/load-program! file)
-        tiles (:tiles (tick (intcode/run-program program)))]
+        tiles (:tiles (tick (intcode/run-program program) (grid/grid) 0))]
     (println "Block tiles:" (count (filter #(= (:type %) :block)
                                            tiles)))
     (play! program)))
