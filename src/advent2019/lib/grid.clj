@@ -18,9 +18,12 @@
 
 (defn grid
   "Constructs a grid."
-  ; TODO: for improved performance when calling [[values]], this should be a
-  ; sorted-map. Unfortunately, assoc-in and update-in create hash-maps.
-  [] {})
+  [] (sorted-map))
+
+(defn row [grid y]
+  (if (contains? grid y)
+    grid
+    (assoc grid y (sorted-map))))
 
 (defn grid-get
   "Returns the value at the point.
@@ -42,7 +45,7 @@
 
 (defn grid-update
   "Updates a value at a point in the grid."
-  [grid x y f] (update-in grid [y x] f))
+  [grid x y f] (update-in (row grid y) [y x] f))
 
 (s/fdef grid-update
   :args (s/cat :grid ::grid
@@ -54,7 +57,8 @@
 
 (defn grid-assoc
   "Sets a value at a point in the grid."
-  [grid x y value] (assoc-in grid [y x] value))
+  [grid x y value]
+  (assoc-in (row grid y) [y x] value))
 
 (s/fdef grid-assoc
   :args (s/cat :grid ::grid
@@ -76,11 +80,9 @@
   "Returns a collection of all grid points that have non-nil values in
   sparse row-major order."
   [grid]
-  (sort-by :y (sort-by :x (mapcat
-                           (fn [[y row]] (map
-                                          (fn [[x value]] {:x x :y y :value value})
-                                          row))
-                           grid))))
+  (mapcat (fn [[y row]] (map (fn [[x value]] {:x x :y y :value value})
+                             row))
+          grid))
 
 ; (defn rectangle
 ;   "Returns a collection of all grid points within a bounding rectangle in
