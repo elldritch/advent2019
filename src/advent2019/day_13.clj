@@ -56,27 +56,29 @@
                            row)))
          (partition-by :y (grid/values (:tiles frame)))))))
 
-(defn play! [program]
+(defn play [program]
   (loop [continuation (intcode/run-program (assoc program 0 2))
          tiles (grid/grid)
          score 0]
     (let [frame (tick continuation tiles score)
-          cont (:continuation frame)
-          status (:status cont)]
-      (println (show frame))
-      (println status)
+          continue (:continuation frame)
+          status (:status continue)
+          tile-list (grid/values (:tiles frame))
+          paddle (first (filter #(= (:value %) :horizontal-paddle) tile-list))
+          ball (first (filter #(= (:value %) :ball) tile-list))]
       (if (= status :halted)
         (:score frame)
-        (do
-          (print "Next joystick input (-1, 0, 1): ")
-          (flush)
-          (recur (intcode/resume-program-with-input cont (Integer/parseInt (read-line)))
-                 (:tiles frame)
-                 (:score frame)))))))
+        (recur (intcode/resume-program-with-input continue
+                                                  (cond
+                                                    (< (:x paddle) (:x ball)) 1
+                                                    (< (:x ball) (:x paddle)) -1
+                                                    :else 0))
+               (:tiles frame)
+               (:score frame))))))
 
 (defn solve! [file]
   (let [program (intcode/load-program! file)
         tiles (:tiles (tick (intcode/run-program program) (grid/grid) 0))]
     (println "Block tiles:" (count (filter #(= (:type %) :block)
                                            tiles)))
-    (play! program)))
+    (println "Score on completion:" (play program))))
