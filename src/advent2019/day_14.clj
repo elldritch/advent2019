@@ -1,6 +1,8 @@
 (ns advent2019.day-14
   (:require [clojure.string :as str]
-            [clojure.math.numeric-tower :as math]))
+            [clojure.math.numeric-tower :as math]
+            [loom.graph :as g]
+            [loom.alg :as alg]))
 
 (defn parse-element [input]
   (let [[quantity ingredient] (-> (str/trim input)
@@ -22,57 +24,64 @@
 (defn parse-recipes [input]
   (->> input
        (str/split-lines)
-       (mapv parse-equation)))
+       (mapv parse-equation)
+       (reduce (fn [recipes {:keys [inputs]
+                             {:keys [ingredient quantity]} :output}]
+                 (assoc recipes
+                        ingredient
+                        {:inputs inputs
+                         :quantity quantity}))
+               {})))
 
 (defn load-file! [file] (parse-recipes (slurp file)))
 
-(defn find-recipe [recipes ingredient]
-  (first (filter #(= (get-in % [:output :ingredient]) ingredient) recipes)))
-
-(defn smallest-multiple-of-x-above-y [x y]
+(defn smallest-multiple-above [x y]
   (let [multiplier (int (math/ceil (/ y x)))]
     {:multiple (* x multiplier)
      :multiplier multiplier}))
 
-(defn scale-recipe [recipe output-quantity]
-  (let [multiplier (:multiplier (smallest-multiple-of-x-above-y (get-in recipe [:output :quantity])
-                                                                output-quantity))]
+(defn scale-recipe [recipes ingredient amount]
+  (let [recipe (recipes ingredient)
+        quantity (:quantity recipe)
+        multiplier (:multiplier (smallest-multiple-above quantity
+                                                         amount))]
     {:inputs (reduce-kv (fn [m k v] (assoc m k (* v multiplier))) {} (:inputs recipe))
-     :output (update (:output recipe) :quantity (partial * multiplier))}))
+     :quantity (* multiplier quantity)}))
 
-(defn recipe-for [recipes ingredient amount]
-  (let [recipe (find-recipe recipes ingredient)
-        scaled (scale-recipe recipe amount)
-        scaled-amount (get-in scaled [:output :quantity])]
-    {:inputs (:inputs scaled)
-     :output (assoc (:output scaled) :leftover (max (- scaled-amount amount) 0))}))
+(defn reactions-graph [recipes target]
+  (loop [graph (g/add-nodes (g/weighted-digraph) target)
+         nodes [target]]
+    (if (empty? nodes)
+      graph
+      (let [reduction
+            (reduce (fn [acc node]
+                      (let [inputs (:inputs (recipes node))
+                            successors (keys inputs)]
+                        {:graph (-> (:graph acc)
+                                    (g/add-nodes* successors)
+                                    (g/add-edges* (map #(vector node % (inputs %))
+                                                       successors)))
+                         :successors (into (:successors acc) successors)}))
+                    {:graph graph
+                     :successors #{}}
+                    nodes)]
+        (recur (:graph reduction)
+               (:successors reduction))))))
 
-; mapcat over inputs, get their scaled recipes
-; put extra output on outputs side to be consumed by recipes
-; iterate until fixpoint
-; ORE as input ingredient is handled as special case
-; 
-; maybe this needs dynamic programming? reduce over (ways to create an X, ore needed)
-; subproblem = choose which input to simplify first
-
-(defn ore-for [inputs]
-  (if (and (= (count inputs) 1) (= (:ingredient (first inputs)) "ORE"))
-    (:quantity (first inputs))
-    ()))
-
-(defn reduce-input [{:keys [leftovers inputs]} ingredient quantity]
-  ())
-
-(defn ore-needed-for-fuel [recipes]
-  (loop [inputs (:inputs (recipe-for recipes "FUEL" 1))
-         leftovers []]
-    (println inputs)
-    (println (reduce-kv reduce-input
-                     {:leftovers leftovers
-                      :inputs []}
-                     inputs))
-    (println leftovers)))
+(defn reaction-quantities [recipes rx-graph]
+  (reduce (fn [quantities ingredient]
+            (assoc quantities
+                   ingredient
+                   (reduce (fn [acc predecessor]
+                             (+ (get-in (scale-recipe recipes predecessor (quantities predecessor))
+                                        [:inputs ingredient])
+                                acc))
+                           0
+                           (g/predecessors rx-graph ingredient))))
+          {"FUEL" 1}
+          (rest (alg/topsort rx-graph))))
 
 (defn solve! [file]
-  (let [recipes (load-file! file)]
-    ()))
+  (let [recipes (load-file! file)
+        rx-graph (reactions-graph recipes "FUEL")]
+    (println "Minimum ore to produce 1 fuel:" ((reaction-quantities recipes rx-graph) "ORE"))))
