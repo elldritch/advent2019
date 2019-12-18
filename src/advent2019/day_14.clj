@@ -36,7 +36,7 @@
 (defn load-file! [file] (parse-recipes (slurp file)))
 
 (defn smallest-multiple-above [x y]
-  (let [multiplier (int (math/ceil (/ y x)))]
+  (let [multiplier (long (math/ceil (/ y x)))]
     {:multiple (* x multiplier)
      :multiplier multiplier}))
 
@@ -85,6 +85,23 @@
 (defn min-ore [recipes ingredient amount]
   ((reaction-quantities recipes ingredient amount) "ORE"))
 
+(defn halfway [high low]
+  (+ (quot (- high low) 2) low))
+
+(defn max-fuel [recipes ore]
+  (loop [high (inc ore)
+         low 0]
+    (let [needle (halfway high low)
+          needed (min-ore recipes "FUEL" needle)]
+      (cond
+        (<= high (inc low)) low
+        (< ore needed) (recur needle low)
+        (> ore needed) (recur high needle)
+        :else (throw (ex-info "impossible" {:high high
+                                            :low low
+                                            :needle needle}))))))
+
 (defn solve! [file]
   (let [recipes (load-file! file)]
-    (println "Minimum ore to produce 1 fuel:" (min-ore recipes "FUEL" 1))))
+    (println "Minimum ore to produce 1 fuel:" (min-ore recipes "FUEL" 1))
+    (println "Maximum fuel produced by 1T ore:" (max-fuel recipes 1000000000))))

@@ -1,7 +1,8 @@
 (ns advent2019.day-14-test
   (:require [clojure.test :refer [deftest is testing]]
             [advent2019.day-14 :refer [parse-recipes
-                                       min-ore]]))
+                                       min-ore
+                                       max-fuel]]))
 
 (def small-recipes-1 (parse-recipes "10 ORE => 10 A
 1 ORE => 1 B
@@ -60,9 +61,13 @@
 5 BHXH, 4 VRPVC => 5 LTCX"))
 
 (deftest space-stoichiometry
-  (is (= (min-ore small-recipes-1 "FUEL" 1) 31))
-  (is (= (min-ore small-recipes-2 "FUEL" 1) 165))
-  (is (= (min-ore large-recipes-1 "FUEL" 1) 13312))
-  (is (= (min-ore large-recipes-2 "FUEL" 1) 180697))
-  (is (= (min-ore large-recipes-3 "FUEL" 1) 2210736))
-  )
+  (testing "minimum ore per fuel"
+    (is (= (min-ore small-recipes-1 "FUEL" 1) 31))
+    (is (= (min-ore small-recipes-2 "FUEL" 1) 165))
+    (is (= (min-ore large-recipes-1 "FUEL" 1) 13312))
+    (is (= (min-ore large-recipes-2 "FUEL" 1) 180697))
+    (is (= (min-ore large-recipes-3 "FUEL" 1) 2210736)))
+  (testing "maximum fuel per ore"
+    (is (= (max-fuel large-recipes-1 1000000000000) 82892753))
+    (is (= (max-fuel large-recipes-2 1000000000000) 5586022))
+    (is (= (max-fuel large-recipes-3 1000000000000) 460664))))
