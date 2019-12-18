@@ -99,3 +99,9 @@ jobs:
           lein run -- --input-file /tmp/puzzle-input-day-13 --puzzle 13
         env:
           PUZZLE_INPUT_DAY_13: ${{ secrets.PUZZLE_INPUT_DAY_13}}
+      - name: Solve day 14 challenge
+        run: |
+          echo -n $PUZZLE_INPUT_DAY_14 | jq -r . | head -c -1 > /tmp/puzzle-input-day-14
+          lein run -- --input-file /tmp/puzzle-input-day-14 --puzzle 14
+        env:
+          PUZZLE_INPUT_DAY_14: ${{ secrets.PUZZLE_INPUT_DAY_14}}
