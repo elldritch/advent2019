@@ -68,20 +68,23 @@
         (recur (:graph reduction)
                (:successors reduction))))))
 
-(defn reaction-quantities [recipes rx-graph]
-  (reduce (fn [quantities ingredient]
-            (assoc quantities
-                   ingredient
-                   (reduce (fn [acc predecessor]
-                             (+ (get-in (scale-recipe recipes predecessor (quantities predecessor))
-                                        [:inputs ingredient])
-                                acc))
-                           0
-                           (g/predecessors rx-graph ingredient))))
-          {"FUEL" 1}
-          (rest (alg/topsort rx-graph))))
+(defn reaction-quantities [recipes ingredient amount]
+  (let [rxg (reactions-graph recipes ingredient)]
+    (reduce (fn [quantities ingredient]
+              (assoc quantities
+                     ingredient
+                     (reduce (fn [acc predecessor]
+                               (+ (get-in (scale-recipe recipes predecessor (quantities predecessor))
+                                          [:inputs ingredient])
+                                  acc))
+                             0
+                             (g/predecessors rxg ingredient))))
+            {ingredient amount}
+            (rest (alg/topsort rxg)))))
+
+(defn min-ore [recipes ingredient amount]
+  ((reaction-quantities recipes ingredient amount) "ORE"))
 
 (defn solve! [file]
-  (let [recipes (load-file! file)
-        rx-graph (reactions-graph recipes "FUEL")]
-    (println "Minimum ore to produce 1 fuel:" ((reaction-quantities recipes rx-graph) "ORE"))))
+  (let [recipes (load-file! file)]
+    (println "Minimum ore to produce 1 fuel:" (min-ore recipes "FUEL" 1))))
