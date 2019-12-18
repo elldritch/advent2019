@@ -1,5 +1,6 @@
 (ns advent2019.day-02
-  (:require [advent2019.lib.intcode :refer [load-program! run-program]]))
+  (:require [advent2019.lib.intcode :refer [load-program!
+                                            run-program]]))
 
 (defn interpret-program [noun verb program]
   (let [program' (assoc program 1 noun)

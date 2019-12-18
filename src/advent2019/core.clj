@@ -13,7 +13,8 @@
             [advent2019.day-12 :as day12]
             [advent2019.day-13 :as day13]
             [advent2019.day-14 :as day14]
-            [clojure.tools.cli :refer [parse-opts]])
+            [clojure.string :as str]
+            [clojure.tools.cli :as cli])
   (:gen-class))
 
 ; Program runner
@@ -26,20 +27,20 @@
     :parse-fn #(Integer/parseInt %)]
    ["-h", "--help"]])
 
-(defn errors-msg [errors] (clojure.string/join \newline errors))
+(defn errors-msg [errors] (str/join \newline errors))
 
 (defn usage-msg [options-summary]
-  (clojure.string/join \newline
-                       [""
-                        "Usage:"
-                        ""
-                        options-summary]))
+  (str/join \newline
+            [""
+             "Usage:"
+             ""
+             options-summary]))
 
 (defn -main
   [& args]
   (let [{{:keys [file puzzle]} :options
          errors :errors
-         summary :summary} (parse-opts args options)]
+         summary :summary} (cli/parse-opts args options)]
     (cond
       errors (do
                (println (str (errors-msg errors) \newline (usage-msg summary)))

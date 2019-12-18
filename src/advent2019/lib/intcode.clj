@@ -1,8 +1,9 @@
-(ns advent2019.lib.intcode)
+(ns advent2019.lib.intcode
+  (:require [clojure.string :as str]))
 
 (defn load-program! [file]
   (vec (map #(Long/parseLong %)
-            (clojure.string/split (slurp file) #","))))
+            (str/split (slurp file) #","))))
 
 (defn opcode [instruction] (mod instruction 100))
 

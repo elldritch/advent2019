@@ -1,7 +1,8 @@
-(ns advent2019.day-04)
+(ns advent2019.day-04
+  (:require [clojure.string :as str]))
 
 (defn parse [text]
-  (vec (map #(Integer/parseInt %) (clojure.string/split text #"-"))))
+  (vec (map #(Integer/parseInt %) (str/split text #"-"))))
 
 (defn digits [n]
   (if (pos? n)

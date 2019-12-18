@@ -1,5 +1,6 @@
 (ns advent2019.day-10
-  (:require [clojure.set]))
+  (:require [clojure.set]
+            [clojure.string :as str]))
 
 (defn get-in-grid [grid x y] ((grid y) x))
 
@@ -13,7 +14,7 @@
   (map #(dissoc % :at) (filter #(= \# (:at %)) (grid-to-coordinates grid))))
 
 (defn parse [lines]
-  (let [grid (vec (map #(vec (char-array %)) (clojure.string/split-lines lines)))
+  (let [grid (vec (map #(vec (char-array %)) (str/split-lines lines)))
         asteroid-list (vec (asteroids grid))]
     {:grid grid
      :asteroids asteroid-list}))

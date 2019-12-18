@@ -1,8 +1,8 @@
 (ns advent2019.day-06
-  (:require [clojure.string :refer [split]]))
+  (:require [clojure.string :as str]))
 
 (defn parse-orbits [input]
-  (vec (map #(split % #"\)") (split input #"\n"))))
+  (vec (map #(str/split % #"\)") (str/split input #"\n"))))
 
 (defn load-orbits! [file]
   (parse-orbits (slurp file)))

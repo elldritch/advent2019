@@ -1,11 +1,12 @@
 (ns advent2019.day-03
-  (:require [clojure.math.numeric-tower :refer [abs]]))
+  (:require [clojure.math.numeric-tower :refer [abs]]
+            [clojure.string :as str]))
 
 (defn parse [input]
   (map #(map (fn [[direction & length]]
                {:direction (case direction \L :left \R :right \U :up \D :down)
                 :length (Integer/parseInt (apply str length))}) %)
-       (map #(clojure.string/split % #",") (clojure.string/split-lines input))))
+       (map #(str/split % #",") (str/split-lines input))))
 
 (defn move [point path]
   (let [[x y] point

@@ -1,10 +1,11 @@
 (ns advent2019.day-12
-  (:require [clojure.math.numeric-tower :refer [abs lcm]]))
+  (:require [clojure.math.numeric-tower :refer [abs lcm]]
+            [clojure.string :as str]))
 
 (defn load-file! [file]
   (->> file
        (slurp)
-       (clojure.string/split-lines)
+       (str/split-lines)
        (mapv #(->> (re-matcher #"<x=(-?[0-9]+?), y=(-?[0-9]+?), z=(-?[0-9]+?)>" %)
                    (re-find)
                    (rest)
