@@ -104,4 +104,4 @@
 (defn solve! [file]
   (let [recipes (load-file! file)]
     (println "Minimum ore to produce 1 fuel:" (min-ore recipes "FUEL" 1))
-    (println "Maximum fuel produced by 1T ore:" (max-fuel recipes 1000000000))))
+    (println "Maximum fuel produced by 1T ore:" (max-fuel recipes 1000000000000))))
