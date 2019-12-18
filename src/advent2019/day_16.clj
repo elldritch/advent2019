@@ -13,10 +13,19 @@
 
 (defn phases [digits phase-count] (nth (iterate phase digits) phase-count))
 
+(defn undigits [digits] (reduce #(+ (* 10 %1) %2) 0 digits))
+
+(defn decode [digits]
+  (let [offset (undigits (take 7 digits))
+        signal (apply concat (repeat 10000 digits))
+        final (phases signal 100)]
+    (take 8 (nthrest final offset))))
+
 (defn parse [input] (map #(Character/digit % 10) input))
 
 (defn load-file! [file] (parse (slurp file)))
 
 (defn solve! [file]
   (let [digits (load-file! file)]
-    (println "First 8 digits after 100 phases of FFT:" (take 8 (phases digits 100)))))
+    (println "First 8 digits after 100 phases of FFT:" (take 8 (phases digits 100)))
+    (println "Decoded message:" (decode digits))))
