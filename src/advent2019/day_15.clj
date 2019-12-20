@@ -72,4 +72,6 @@
                          (first)
                          (:node))]
     (println "Fewest number of movement commands:"
-             (dec (count (alg/bf-path graph start destination))))))
+             (dec (count (alg/bf-path graph start destination))))
+    (println "Time needed to fill with oxygen:"
+             (dec (count (alg/longest-shortest-path graph destination))))))
