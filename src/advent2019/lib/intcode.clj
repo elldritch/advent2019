@@ -5,9 +5,9 @@
   (vec (map #(Long/parseLong %)
             (str/split (slurp file) #","))))
 
-(defn opcode [instruction] (mod instruction 100))
+(defn- opcode [instruction] (mod instruction 100))
 
-(defn parameter-mode [instruction parameter-number]
+(defn- parameter-mode [instruction parameter-number]
   (case (mod (quot instruction (int (Math/pow 10 (+ 1 parameter-number)))) 10)
     0 :position
     1 :immediate
@@ -15,14 +15,14 @@
     (throw (ex-info "unknown parameter mode"
                     {:instruction instruction :parameter-number parameter-number}))))
 
-(defn read-parameter [instruction state pc relative-base n]
+(defn- read-parameter [instruction state pc relative-base n]
   (let [parameter-value (get state (+ pc n) 0)]
     (case (parameter-mode instruction n)
       :position (get state parameter-value 0)
       :immediate parameter-value
       :relative (get state (+ parameter-value relative-base) 0))))
 
-(defn write-parameter [instruction state pc relative-base n]
+(defn- write-parameter [instruction state pc relative-base n]
   (let [parameter-value (get state (+ pc n) 0)]
     (case (parameter-mode instruction n)
       :position parameter-value
@@ -30,7 +30,7 @@
                           {:instruction instruction})
       :relative (+ parameter-value relative-base))))
 
-(defn next-instruction [state pc relative-base]
+(defn- next-instruction [state pc relative-base]
   (let [instruction (get state pc 0)
         read-parameter' (partial read-parameter instruction state pc relative-base)
         write-parameter' (partial write-parameter instruction state pc relative-base)]
@@ -69,7 +69,7 @@
                        :pc pc
                        :state state})))))
 
-(defn run-continuation [continuation]
+(defn- run-continuation [continuation]
   (loop [state (:state continuation)
          pc (:pc continuation)
          relative-base (:relative-base continuation)]

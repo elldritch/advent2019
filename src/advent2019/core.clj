@@ -13,6 +13,7 @@
             [advent2019.day-12 :as day12]
             [advent2019.day-13 :as day13]
             [advent2019.day-14 :as day14]
+            [advent2019.day-15 :as day15]
             [advent2019.day-16 :as day16]
             [clojure.string :as str]
             [clojure.tools.cli :as cli])
@@ -68,6 +69,7 @@
         12 (day12/solve! file)
         13 (day13/solve! file)
         14 (day14/solve! file)
+        15 (day15/solve! file)
         16 (day16/solve! file)
         (do
           (println "Error: invalid puzzle number")
