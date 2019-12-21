@@ -134,3 +134,11 @@
       (recur (resume-program continuation') (conj outputs (:output continuation')))
       {:continuation continuation'
        :outputs outputs})))
+
+(defn provide-inputs [continuation inputs]
+  (loop [continuation' continuation
+         remaining-inputs inputs]
+    (if (empty? remaining-inputs)
+      continuation'
+      (recur (resume-program-with-input continuation' (peek inputs))
+             (pop inputs)))))

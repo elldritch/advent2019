@@ -3,7 +3,7 @@
             [advent2019.lib.grid :as g]
             [clojure.string :as str]))
 
-(defn show [image]
+(defn outputs->image [image]
   (str/trim (reduce (fn [s px] (str s (char px))) "" image)))
 
 (defn image->grid [ascii]
@@ -64,7 +64,7 @@
            travelled []]
       (let [segment (travel-down-segment grid position direction)
             relative (next-turn grid (:end segment) direction)
-            travelled' (conj travelled {:travel (:distance segment)
+            travelled' (conj travelled {:distance (:distance segment)
                                         :turn relative})]
         (if (nil? relative)
           travelled'
@@ -74,7 +74,7 @@
 
 (defn path->ascii [path]
   (->> path
-       (mapcat #(vector (:travel %) (:turn %)))
+       (mapcat #(vector (:distance %) (:turn %)))
        (filter #(not (or (#{0} %) (nil? %))))
        (map #(case %
                :right "R"
@@ -82,15 +82,52 @@
                (str %)))
        (str/join ",")))
 
+(defn input-program [continuation program]
+  (intcode/provide-inputs
+   continuation
+   (->> program
+        (map #(case %
+                :a \A
+                :b \B
+                :c \C
+                :left \L
+                :right \R
+                (str %)))
+        (str/join ",")
+        (#(str % \newline))
+        (map int)
+        (apply list))))
+
+; These were determined from manual examination.
+; A: L,12,L,12,R,12,
+; A: L,12,L,12,R,12,
+; B: L,8,L,8,R,12,L,8,L,8,
+; C: L,10,R,8,R,12,
+; C: L,10,R,8,R,12,
+; A: L,12,L,12,R,12,
+; B: L,8,L,8,R,12,L,8,L,8,
+; C: L,10,R,8,R,12,
+; A: L,12,L,12,R,12,
+; B: L,8,L,8,R,12,L,8,L,8
+(defn input-main [continuation]
+  (input-program continuation [:a :a :b :c :c :a :b :c :a]))
+
+(defn input-a [continuation]
+  (input-program continuation [:left 12 :left 12 :right 12]))
+
+(defn input-b [continuation]
+  (input-program continuation [:left 8 :left 8 :right 12 :left 8 :left 8]))
+
+(defn input-c [continuation]
+  (input-program continuation [:left 10 :right 8 :right 12]))
+
 (defn solve! [file]
   (let [image (:outputs (->> file
                              (intcode/load-program!)
                              (intcode/run-program)
                              (intcode/gather-outputs)))
-        grid (image->grid (show image))]
+        grid (image->grid (outputs->image image))]
     (println "Sum of alignment parameters:"
              (reduce + (map #(* (:x %) (:y %))
                             (intersections grid))))
-    (println "Scaffold image:")
-    (println (show image))
-    (println (path grid))))
+    (println "Path through scaffold:" (path->ascii (path grid)))))
