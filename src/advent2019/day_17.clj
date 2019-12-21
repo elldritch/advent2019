@@ -72,6 +72,16 @@
                  (g/turn direction relative)
                  travelled'))))))
 
+(defn path->ascii [path]
+  (->> path
+       (mapcat #(vector (:travel %) (:turn %)))
+       (filter #(not (or (#{0} %) (nil? %))))
+       (map #(case %
+               :right "R"
+               :left "L"
+               (str %)))
+       (str/join ",")))
+
 (defn solve! [file]
   (let [image (:outputs (->> file
                              (intcode/load-program!)
