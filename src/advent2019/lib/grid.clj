@@ -7,6 +7,10 @@
 
 (s/def ::y int?)
 
+(s/def ::cardinal-direction #{:north :south :east :west})
+
+(s/def ::relative-direction #{:right :left})
+
 (s/def ::value any?)
 
 (s/def ::point (s/keys :req-un [::x ::y]
@@ -30,6 +34,7 @@
 
   If the point does not have a value, `not-found` is returned. If `not-found`
   is not set, nil is returned."
+  ([grid {:keys [x y]}] (grid-get grid x y))
   ([grid x y] (grid-get grid x y nil))
   ([grid x y not-found] (get-in grid [y x] not-found)))
 
@@ -141,6 +146,31 @@
 
 (defn distance
   "The manhattan distance between two points."
-  [[x y] [x' y']]
+  [{x :x y :y} {x' :x y' :y}]
   (+ (math/abs (- x x'))
      (math/abs (- y y'))))
+
+(defn turn [direction relative]
+  (case direction
+    :north (case relative
+             :right :east
+             :left :west)
+    :south (case relative
+             :right :west
+             :left :east)
+    :east (case relative
+            :right :south
+            :left :north)
+    :west (case relative
+            :right :north
+            :left :south)))
+
+(defn adjacent
+  ([point direction]
+   (case direction
+     :north (update point :y inc)
+     :south (update point :y dec)
+     :east (update point :x inc)
+     :west (update point :x dec)))
+  ([point direction relative]
+   (adjacent point (turn direction relative))))
