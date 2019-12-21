@@ -7,4 +7,5 @@
                  [aysylu/loom "1.0.2"]]
   :main ^:skip-aot advent2019.core
   :target-path "target/%s"
-  :profiles {:uberjar {:aot :all}})
+  :profiles {:uberjar {:aot :all}
+             :repl {:dependencies [[org.clojure/tools.trace "0.7.10"]]}})
