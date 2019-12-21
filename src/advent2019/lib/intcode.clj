@@ -140,5 +140,5 @@
          remaining-inputs inputs]
     (if (empty? remaining-inputs)
       continuation'
-      (recur (resume-program-with-input continuation' (peek inputs))
-             (pop inputs)))))
+      (recur (resume-program-with-input continuation' (peek remaining-inputs))
+             (pop remaining-inputs)))))

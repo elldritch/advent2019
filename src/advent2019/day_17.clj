@@ -83,20 +83,22 @@
        (str/join ",")))
 
 (defn input-program [continuation program]
-  (intcode/provide-inputs
-   continuation
-   (->> program
-        (map #(case %
-                :a \A
-                :b \B
-                :c \C
-                :left \L
-                :right \R
-                (str %)))
-        (str/join ",")
-        (#(str % \newline))
-        (map int)
-        (apply list))))
+  (->> (intcode/provide-inputs
+        continuation
+        (->> program
+             (map #(case %
+                     :a \A
+                     :b \B
+                     :c \C
+                     :left \L
+                     :right \R
+                     (str %)))
+             (str/join ",")
+             (#(str % \newline))
+             (map int)
+             (apply list)))
+       (intcode/gather-outputs)
+       (:continuation)))
 
 ; These were determined from manual examination.
 ; A: L,12,L,12,R,12,
@@ -110,7 +112,7 @@
 ; A: L,12,L,12,R,12,
 ; B: L,8,L,8,R,12,L,8,L,8
 (defn input-main [continuation]
-  (input-program continuation [:a :a :b :c :c :a :b :c :a]))
+  (input-program continuation [:a :a :b :c :c :a :b :c :a :b]))
 
 (defn input-a [continuation]
   (input-program continuation [:left 12 :left 12 :right 12]))
@@ -121,13 +123,26 @@
 (defn input-c [continuation]
   (input-program continuation [:left 10 :right 8 :right 12]))
 
+(defn override-robot [program]
+  (->> (assoc program 0 2)
+       (intcode/run-program)
+       (intcode/gather-outputs)
+       (:continuation)
+       (input-main)
+       (input-a)
+       (input-b)
+       (input-c)
+       (#(intcode/provide-inputs % (apply list (map int [\n \newline]))))
+       (intcode/gather-outputs)
+       (:outputs)))
+
 (defn solve! [file]
-  (let [image (:outputs (->> file
-                             (intcode/load-program!)
+  (let [program (intcode/load-program! file)
+        image (:outputs (->> program
                              (intcode/run-program)
                              (intcode/gather-outputs)))
-        grid (image->grid (outputs->image image))]
+        scaffold (image->grid (outputs->image image))]
     (println "Sum of alignment parameters:"
-             (reduce + (map #(* (:x %) (:y %))
-                            (intersections grid))))
-    (println "Path through scaffold:" (path->ascii (path grid)))))
+             (reduce + (map #(* (:x %) (:y %)) (intersections scaffold))))
+    (println "Path through scaffold:" (path->ascii (path scaffold)))
+    (println "Dust collected:" (last (override-robot program)))))
