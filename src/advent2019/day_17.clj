@@ -30,6 +30,32 @@
   (filter #(intersection? grid (:x %) (:y %))
           (g/values grid)))
 
+(defn next-position [position direction]
+  (case direction
+    :north (update position :y inc)
+    :south (update position :y dec)
+    :east (update position :x inc)
+    :west (update position :x dec)))
+
+(defn turns [position direction]
+  ())
+
+; travel down a segment until you can't go any farther
+(defn travel-down-segment [grid start direction]
+  (loop [position start]
+    (let [position' (next-position position direction)]
+      (if (= \# (g/grid-get grid
+                            (:x position')
+                            (:y position')))
+        (recur position')
+        {:position position
+         :distance (g/distance position start)}))))
+
+; all possible paths
+; filter by paths that visit every part of the scaffold at least once
+; filter by paths with no cycles
+; find at most 3 programs of length at most 20
+
 (defn solve! [file]
   (let [image (:outputs (->> file
                              (intcode/load-program!)
@@ -38,4 +64,6 @@
         grid (image->grid (show image))]
     (println "Sum of alignment parameters:"
              (reduce + (map #(* (:x %) (:y %))
-                            (intersections grid))))))
+                            (intersections grid))))
+    (println "Scaffold image:")
+    (println (show image))))

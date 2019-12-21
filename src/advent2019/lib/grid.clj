@@ -141,6 +141,6 @@
 
 (defn distance
   "The manhattan distance between two points."
-  [[x y] [x' y']]
+  [{x :x y :y} {x' :x y' :y}]
   (+ (math/abs (- x x'))
      (math/abs (- y y'))))
