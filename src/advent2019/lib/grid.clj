@@ -166,6 +166,8 @@
             :left :south)))
 
 (defn adjacent
+  ([point]
+   (map #(adjacent point %) [:north :south :east :west]))
   ([point direction]
    (case direction
      :north (update point :y inc)
