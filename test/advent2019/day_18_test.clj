@@ -37,7 +37,12 @@
 ###g#h#i################
 ########################")
 
-(defn waypoints [tc] (shortest-path-waypoints (input->maze tc)))
+(defn tc [input] (waypoints-length (shortest-path-waypoints (input->maze input))))
 
 (deftest shortest-maze-path
-  (testing "shortest path length"))
+  (testing "shortest path length"
+    (is (= (tc maze-1) 8))
+    (is (= (tc maze-large-1) 86))
+    (is (= (tc maze-large-2) 132))
+    ; (is (= (tc maze-large-3) 136))
+    (is (= (tc maze-large-4) 81))))
