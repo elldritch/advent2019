@@ -26,7 +26,7 @@
              :keys (conj keys (when (Character/isLowerCase value) [value position]))
              :doors (conj doors (when (Character/isUpperCase value) [value position]))
              :entrance (if (= value \@) position entrance)}))
-        {:graph (g/graph)
+        {:graph (g/digraph)
          :keys {}
          :doors {}
          :entrance nil})
@@ -43,16 +43,20 @@
                        (->> (grid/adjacent node)
                             (filter is-not-door?)
                             (filter #(g/has-node? graph' %))
-                            (map #(vector node %))
+                            (mapcat (fn [adj] [[node adj] [adj node]]))
                             (g/add-edges* graph')))
                      graph)))))))))
 
 (defn with-door [maze door]
   (let [position ((:doors maze) door)]
-    (assoc maze :graph (->> (grid/adjacent position)
-                            (filter #(g/has-node? (:graph maze) %))
-                            (map #(vector position %))
-                            (g/add-edges* (:graph maze))))))
+    (update
+     maze
+     :graph
+     (fn [graph]
+       (->> (grid/adjacent position)
+            (filter #(g/has-node? graph %))
+            (mapcat (fn [adj] [[position adj] [adj position]]))
+            (g/add-edges* graph))))))
 
 (defn with-doors [maze doors] (reduce with-door maze doors))
 
