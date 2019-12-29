@@ -5,8 +5,6 @@
             [clojure.string :as str]
             [clojure.set :as s]))
 
-(defn add-bidirectional-edge [graph a b] (g/add-edges graph [a b] [b a]))
-
 (defn input->maze [input]
   (->> input
        (str/split-lines)
@@ -25,12 +23,14 @@
           (let [value (:value node)
                 position (dissoc node :value)
                 graph' (g/add-nodes graph position)]
-            {:graph  (->> (filter #(g/has-node? graph' %) (grid/adjacent position))
-                          (reduce #(add-bidirectional-edge %1 position %2) graph'))
+            {:graph  (->> (filter #(g/has-node? graph' %)
+                                  (grid/adjacent position))
+                          (map #(vector position %))
+                          (g/add-edges* graph'))
              :keys (conj keys (when (Character/isLowerCase value) [value position]))
              :doors (conj doors (when (Character/isUpperCase value) [value position]))
              :entrance (if (= value \@) position entrance)}))
-        {:graph (g/digraph)
+        {:graph (g/graph)
          :keys {}
          :doors {}
          :entrance nil})
@@ -38,17 +38,15 @@
           (assoc maze :graph (->> maze
                                   (:doors)
                                   (vals)
-                                  (mapcat #(concat (g/out-edges (:graph maze) %)
-                                                   (g/in-edges (:graph maze) %)))
+                                  (mapcat #(g/out-edges (:graph maze) %))
                                   (g/remove-edges* (:graph maze))))))))
 
 (defn with-door [maze door]
-  (let [position ((:doors maze) door)
-        graph (:graph maze)]
+  (let [position ((:doors maze) door)]
     (assoc maze :graph (->> (grid/adjacent position)
-                            (filter #(g/has-node? graph %))
-                            (reduce #(add-bidirectional-edge %1 position %2)
-                                    graph)))))
+                            (filter #(g/has-node? (:graph maze) %))
+                            (map #(vector position %))
+                            (g/add-edges* (:graph maze))))))
 
 (defn with-doors [maze doors] (reduce with-door maze doors))
 
