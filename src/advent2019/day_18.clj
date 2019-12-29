@@ -58,16 +58,14 @@
 
 (defn path-length [path] (if (empty? path) nil (dec (count path))))
 
-(defn collected-keys [waypoints] (set (map :key waypoints)))
-
 (defn remaining-keys [maze waypoints]
   (set/difference (set (keys (:keys maze)))
-                  (collected-keys waypoints)))
+                  (set waypoints)))
 
 (defn has-all-keys? [maze waypoints] (empty? (remaining-keys maze waypoints)))
 
 (defn unlock-maze-doors [maze waypoints]
-  (with-doors maze (->> (collected-keys waypoints)
+  (with-doors maze (->> waypoints
                         (map #(Character/toUpperCase %))
                         (filter (set (keys (:doors maze))))
                         (set))))
@@ -75,7 +73,7 @@
 (defn next-waypoints [maze waypoints]
   (let [position (if (empty? waypoints)
                    (:entrance maze)
-                   (:position (peek waypoints)))
+                   ((:keys maze) (peek waypoints)))
         remaining (remaining-keys maze waypoints)
         maze' (unlock-maze-doors maze waypoints)]
     (if (empty? remaining)
@@ -87,12 +85,11 @@
                         (path-length (alg/shortest-path (:graph maze')
                                                         position
                                                         (:position %)))))
-           (filter (comp not nil? :distance))
-           (sort-by :distance)))))
+           (filter (comp not nil? :distance))))))
 
 (defn shortest-waypoints [maze]
-  (loop [queue '({:distance 0
-                  :waypoints []})
+  (loop [queue [{:distance 0
+                 :waypoints []}]
          shortest nil]
     (if (empty? queue)
       shortest
@@ -103,11 +100,11 @@
             (recur (pop queue) shortest))
           (if (and (not (nil? shortest)) (> distance (:distance shortest)))
             (recur (pop queue) shortest)
-            (recur (into (pop queue)
-                         (->> (next-waypoints maze waypoints)
-                              (map (fn [wp]
-                                     {:distance (+ distance (:distance wp))
-                                      :waypoints (conj waypoints (dissoc wp :distance))}))))
+            (recur (->> (next-waypoints maze waypoints)
+                        (map (fn [wp]
+                               {:distance (+ distance (:distance wp))
+                                :waypoints (conj waypoints (:key wp))}))
+                        (into (pop queue)))
                    shortest)))))))
 
 (defn solve! [file]
