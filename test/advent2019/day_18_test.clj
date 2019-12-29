@@ -1,8 +1,7 @@
 (ns advent2019.day-18-test
   (:require [clojure.test :refer [deftest is testing]]
             [advent2019.day-18 :refer [input->maze
-                                       shortest-path-waypoints
-                                       waypoints-length]]))
+                                       shortest-waypoints]]))
 
 (def maze-1 "#########
 #b.A.@.a#
@@ -37,7 +36,7 @@
 ###g#h#i################
 ########################")
 
-(defn tc [input] (waypoints-length (shortest-path-waypoints (input->maze input))))
+(defn tc [input] (:distance (shortest-waypoints (input->maze input))))
 
 (deftest shortest-maze-path
   (testing "shortest path length"

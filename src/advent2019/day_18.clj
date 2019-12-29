@@ -3,7 +3,7 @@
             [loom.alg :as alg]
             [advent2019.lib.grid :as grid]
             [clojure.string :as str]
-            [clojure.set :as s]))
+            [clojure.set :as set]))
 
 (defn input->maze [input]
   (->> input
@@ -21,12 +21,8 @@
        (reduce
         (fn [{:keys [graph keys doors entrance]} node]
           (let [value (:value node)
-                position (dissoc node :value)
-                graph' (g/add-nodes graph position)]
-            {:graph  (->> (filter #(g/has-node? graph' %)
-                                  (grid/adjacent position))
-                          (map #(vector position %))
-                          (g/add-edges* graph'))
+                position (dissoc node :value)]
+            {:graph (g/add-nodes graph position)
              :keys (conj keys (when (Character/isLowerCase value) [value position]))
              :doors (conj doors (when (Character/isUpperCase value) [value position]))
              :entrance (if (= value \@) position entrance)}))
@@ -35,11 +31,21 @@
          :doors {}
          :entrance nil})
        ((fn [maze]
-          (assoc maze :graph (->> maze
-                                  (:doors)
-                                  (vals)
-                                  (mapcat #(g/out-edges (:graph maze) %))
-                                  (g/remove-edges* (:graph maze))))))))
+          (update
+           maze
+           :graph
+           (fn [graph]
+             (let [is-not-door? (comp not (set (vals (:doors maze))))]
+               (->> (g/nodes graph)
+                    (filter is-not-door?)
+                    (reduce
+                     (fn [graph' node]
+                       (->> (grid/adjacent node)
+                            (filter is-not-door?)
+                            (filter #(g/has-node? graph' %))
+                            (map #(vector node %))
+                            (g/add-edges* graph')))
+                     graph)))))))))
 
 (defn with-door [maze door]
   (let [position ((:doors maze) door)]
@@ -50,41 +56,60 @@
 
 (defn with-doors [maze doors] (reduce with-door maze doors))
 
-(defn path-length [path] (dec (count path)))
+(defn path-length [path] (if (empty? path) nil (dec (count path))))
 
-(defn paths [maze from collected-keys]
-  (let [unlocked-doors (->> collected-keys
-                            (map #(Character/toUpperCase %))
-                            (filter (set (keys (:doors maze))))
-                            (set))
-        unlocked-maze (with-doors maze unlocked-doors)
-        remaining-keys (s/difference (set (keys (:keys maze))) collected-keys)]
-    (->> remaining-keys
-         (map #(let [key-position ((:keys unlocked-maze) %)
-                     sp (alg/shortest-path (:graph unlocked-maze) from key-position)]
-                 {:key %
-                  :position key-position
-                  :reachable (not (nil? sp))
-                  :distance (path-length sp)}))
-         (filter :reachable)
-         (map #(dissoc % :reachable)))))
+(defn collected-keys [waypoints] (set (map :key waypoints)))
 
-(def paths' (memoize paths))
+(defn remaining-keys [maze waypoints]
+  (set/difference (set (keys (:keys maze)))
+                  (collected-keys waypoints)))
 
-(defn waypoints-length [waypoints] (reduce + 0 (map :distance waypoints)))
+(defn has-all-keys? [maze waypoints] (empty? (remaining-keys maze waypoints)))
 
-(defn shortest-path-waypoints' [maze from waypoints]
-  (let [collected-keys (set (map :key waypoints))
-        remaining-keys (s/difference (set (keys (:keys maze))) collected-keys)]
-    (if (empty? remaining-keys)
-      waypoints
-      (apply min-key
-             waypoints-length
-             (map #(shortest-path-waypoints' maze (:position %) (conj waypoints %))
-                  (paths' maze from collected-keys))))))
+(defn unlock-maze-doors [maze waypoints]
+  (with-doors maze (->> (collected-keys waypoints)
+                        (map #(Character/toUpperCase %))
+                        (filter (set (keys (:doors maze))))
+                        (set))))
 
-(defn shortest-path-waypoints [maze] (shortest-path-waypoints' maze (:entrance maze) []))
+(defn next-waypoints [maze waypoints]
+  (let [position (if (empty? waypoints)
+                   (:entrance maze)
+                   (:position (peek waypoints)))
+        remaining (remaining-keys maze waypoints)
+        maze' (unlock-maze-doors maze waypoints)]
+    (if (empty? remaining)
+      []
+      (->> remaining
+           (map (fn [k] {:key k :position ((:keys maze') k)}))
+           (map #(assoc %
+                        :distance
+                        (path-length (alg/shortest-path (:graph maze')
+                                                        position
+                                                        (:position %)))))
+           (filter (comp not nil? :distance))
+           (sort-by :distance)))))
+
+(defn shortest-waypoints [maze]
+  (loop [queue '({:distance 0
+                  :waypoints []})
+         shortest nil]
+    (if (empty? queue)
+      shortest
+      (let [{:keys [distance waypoints]} (peek queue)]
+        (if (has-all-keys? maze waypoints)
+          (if (or (nil? shortest) (< distance (:distance shortest)))
+            (recur (pop queue) {:distance distance :waypoints waypoints})
+            (recur (pop queue) shortest))
+          (if (and (not (nil? shortest)) (> distance (:distance shortest)))
+            (recur (pop queue) shortest)
+            (recur (into (pop queue)
+                         (->> (next-waypoints maze waypoints)
+                              (map (fn [wp]
+                                     {:distance (+ distance (:distance wp))
+                                      :waypoints (conj waypoints (dissoc wp :distance))}))))
+                   shortest)))))))
 
 (defn solve! [file]
   (let [maze (input->maze (slurp file))]
-    (println (shortest-path-waypoints maze))))
+    (println (shortest-waypoints maze))))
